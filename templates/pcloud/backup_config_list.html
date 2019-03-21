@@ -1,0 +1,112 @@
+
+<div class="modal-header">
+    <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> -->
+    <h4 class="modal-title" id="backupfile_config">选择回退配置</h4>
+</div>
+
+<div class="modal-body" style="padding-bottom: 0px;">
+    <table aria-describedby="editable_info" role="grid" class="table table-striped table-bordered table-hover  dataTable" id="editable1" style="width:-10px ! important;">
+        <thead>
+            <tr>
+                <th class="text-center" style="background-color:white">
+                    <input type="checkbox" id="check_all" onclick="checkAll()">
+                </th>
+                <th class="text-center" id="th_no">ID</th>
+                <th class="text-center">程序名称</th>
+                <th class="text-center">备份文件</th>
+				<th class="text-center">备份时间</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for backup in backup_list %}
+            <tr name="bkinfo_config">
+                <td class="text-center"><input type="checkbox" name="checked" value="{{ backup.backup_id }}"></td>
+                <td class="text-center">{{ backup.backup_id }}</td>
+                <td class="text-center">{{ backup.app_name }}</td>
+                <td class="text-center">{{ backup.backup_file }}</td>
+				<td class="text-center">{{ backup.create_date }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" id="close-btn1">取消</button>
+    <button type="button" class="btn btn-primary" id="save-btn1">保存</button>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var table = $('#editable1').DataTable({
+        "aLengthMenu": [[10, 25, 50, -1], ["10", "25", "50", "all"]],
+        "iDisplayLength":10,
+        "aaSorting": [[2, "asc"]],
+        "aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+        "bAutoWidth": false,
+        "language": {
+            "url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+        },
+        columns: [
+            {data: "checkbox"},
+            {data: "backup_id"},
+            {data: "app_name"},
+            {data: "backup_file"},
+			{data: "create_date"}
+        ]
+    });
+    //将ID列隐藏
+    table.column('1').visible(false);
+
+    $('#editable1 tbody').on( 'click', 'tr', function () {
+        //alert($(this).hasClass('selected'));
+        if($(this).hasClass('selected')){
+            $(this).removeClass('selected');
+            this.children[0].children[0].checked=0;
+        }else{
+            $(this).addClass('selected');
+            this.children[0].children[0].checked=1;
+        }
+    });
+
+    $('#close-btn1').on('click',function(){
+        $('#modal_config').modal('hide');
+    });
+    $('#save-btn1').on('click',function(){
+        var column2 = table.rows('.selected').data();
+        $("#backup_config_id").find("input[name='bk_config']").remove();
+        $("#config_bkfile_on_p").find("button[name='backup_config']").remove();
+        for(var i=0;i<column2.length;i++){
+            column2[i].checkbox='<input name="checked" value="1" checked="" type="checkbox">';
+           // var value = column2[i].id;
+            var backup_file = column2[i].backup_file;
+            $("#backup_config_id").append("<input  id='bk_config' type='hidden' name='bk_config' value='"+backup_file+"'>");
+            $("#config_bkfile_on_p").append("<button name='backup_config' title='"+backup_file+"' type='button' class='btn btn-default btn-xs ss'>"+backup_file+"</button> ");
+        }
+        $('#modal_config').modal('hide');
+    });
+
+}); //$(document).ready
+
+var bCheck = 1;
+function checkAll(){
+    if(bCheck){
+        $("tr[name='bkinfo_config']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',true);
+            oCheckbox.checked=1;
+        });
+        document.getElementById('check_all').checked=1;
+        bCheck = 0;
+    }else{
+        $("tr[name='bkinfo_config']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',false);
+            oCheckbox.checked=0;
+        });
+        document.getElementById('check_all').checked=0;
+        bCheck = 1;
+    }
+}
+
+</script>

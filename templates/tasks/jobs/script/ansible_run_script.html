@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block self_head_css_js %}
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+<style>
+  .task_result {
+		overflow: auto;
+		display: block;
+		padding: 9.5px;
+		margin: 0 0 10px;
+		font-size: 13px;
+		line-height: 1.42857143;
+		color: #333;
+		word-break: break-all;
+		word-wrap: break-word;
+		background-color: #000000;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		font-family: Consolas, monospace;
+		color: #ADFF2F;	
+		width: 75%;
+	}
+</style>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+		    <div class="ibox float-e-margins">
+			    <div class="ibox-title">
+					<h5>执行作业</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+					<form id="task_form" name="checkform" method="post" class="form-horizontal">
+						{% csrf_token %}
+                        <div class="tab-content">
+							<div class="form-group">
+								<label class="control-label col-sm-2 col-lg-2">Task__id:</label>
+								<div class="col-sm-10 col-lg-10">
+									<input type="button" id="task_id" name="tasks" class="task_result" value="{{ task_uuid }}" style="text-align: left;"/>
+								</div>
+							</div>
+							<div class="form-group" id="result">
+								<label class="control-label col-sm-2 col-lg-2">执行结果:</label>
+								<div class="col-sm-10 col-lg-10">
+								<textarea class="task_result" rows="20" id="task_result" readonly > </textarea>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<div class="col-sm-10 col-lg-10"  style="text-align:center">
+									<input type="button" id="start_id" class="btn btn-xs btn-primary" value="执行任务" onclick="runAnsibleModel(this)" style="float:center"/>
+									<!--<input type="button" id="stop_id" class="btn btn-xs btn-danger col-md-offset-2" value="取消任务" onclick="get_task_id()" disabled />-->
+								</div>
+							</div>						
+
+					     </div>
+					  </form>	
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block self_footer_js %}
+
+<script type="text/javascript">
+//set csrf
+    $.ajaxSetup({headers: {"X-CSRFToken":'{{ csrf_token }}'}});
+</script>
+<script type="text/javascript">
+	function runAnsibleModel(obj) {
+		var btnObj = $(obj);
+		btnObj.attr('disabled',true);
+		$("#task_result").html("服务器正在处理, 请稍等 ...\r\n");
+		/* 轮训获取结果 开始  */
+		data = "task_uuid=" + document.getElementById('task_id').value
+ 	   var interval = setInterval(function(){  
+	        $.ajax({  
+	            url: '{% url "ansible_polling_result" %}',  
+	            type: 'post', 
+	            data: data,
+	            success : function(result){
+	            	if (result["msg"] !== null ){
+					    var textarea = document.getElementById("task_result");
+						textarea.value = textarea.value +result["msg"]+"\r\n"
+	            		//$("#task_result").append("<p>"+result["msg"]+"</p>"); 
+	            		if (result["msg"].indexOf("[Done]") == 0){
+	            			clearInterval(interval);
+	            			window.wxc.xcConfirm("Ansible执行完成", window.wxc.xcConfirm.typeEnum.success);
+	            			btnObj.removeAttr('disabled');
+	            		}
+	            	}
+	            },
+		    	error:function(response){
+		    		btnObj.removeAttr('disabled');
+		    		clearInterval(interval);
+		    	}	            
+	        });  
+	    },1000);  
+// 	    /* 轮训获取结果结束  */
+		$.ajax({
+			url: '{% url "ansible_run_script" %}', //请求地址
+			type:"POST",
+			data: data,
+			success:function(response){
+				btnObj.removeAttr('disabled');
+				if (response["code"] == "500"){
+					clearInterval(interval);
+					btnObj.removeAttr('disabled');
+					window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+				}
+				
+			},
+	    	error:function(response){
+	    		btnObj.removeAttr('disabled');
+	    		window.wxc.xcConfirm("运行失败", window.wxc.xcConfirm.typeEnum.error);
+	    		clearInterval(interval);
+	    	}
+		})	
+	}
+</script>
+{% endblock %}

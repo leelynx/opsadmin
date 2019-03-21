@@ -1,0 +1,130 @@
+{% load i18n %}
+{% if request.session.role_id == 0 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+		   {% include 'nav_profile.html' %}
+		    <li id="index">
+               <a href="{% url 'index' %}"><i class="fa fa-home"></i> <span class="nav-label">主页</span><span class="label label-info pull-right"></span></a>
+            </li>
+			<li id="cmdb">
+                <a href="#"><i class="fa fa-database"></i> <span class="nav-label">CMDB资源池</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="project"><a href="{% url 'cmdb_project_list' %}">项目平台</a></li>
+					<li class="server"><a href="{% url 'cmdb_server_list' %}">主机管理</a></li>
+					<li class="app"><a href="{% url 'cmdb_app_list' %}">应用管理</a></li>
+					<li class="ansible"><a href="{% url 'cmdb_ansible_list' %}">ansbile分组</a></li>
+				</ul>
+            </li>
+			<li id="config">
+                <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">配置管理中心</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="slb">
+						<a href="#"><i class="fa fa-cubes"></i> <span class="nav-label">Nginx负载均衡</span><span class="fa arrow"></span></a>
+						<ul class="nav nav-third-level">
+							<li class="list"><a href="{% url 'slb_list' %}">实例管理</a></li>
+						</ul>
+					</li>
+				</ul>
+            </li>
+			<li id="ops">
+                <a href="#"><i class="fa fa-linux"></i> <span class="nav-label">作业管理中心</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="create"><a href="{% url 'ansible_create_script' %}">新建作业脚本</a></li>
+					<li class="list"><a href="{% url 'ansible_list_script' %}">作业脚本库</a></li>
+					<li class="pcloud">
+						<a href="#"><i class="fa fa-list"></i> <span class="nav-label">境外私有云</span><span class="fa arrow"></span></a>
+						<ul class="nav nav-third-level">
+							<li class="release"><a href="{% url 'pcloud_release_code' %}">全量发布源码</a></li>
+							<li class="code"><a href="{% url 'pcloud_increment_release_code' %}">增量更新程序</a></li>
+							<li class="config"><a href="{% url 'pcloud_release_config' %}">增量更新配置</a></li>
+							<li class="restart"><a href="{% url 'pcloud_restart_process' %}">批量重启服务</a></li>
+							<li class="appcode"><a href="{% url 'pcloud_rollback_code' %}">程序备份回退</a></li>
+							<li class="appconf"><a href="{% url 'pcloud_rollback_config' %}">配置文件回退</a></li>
+						</ul>
+					</li>
+					<li class="play">
+						<a href="#"><i class="fa fa-list"></i> <span class="nav-label">境外支付网关</span><span class="fa arrow"></span></a>
+						<ul class="nav nav-third-level">
+							<li class="config"><a href="{% url 'play_release_config' %}">配置更新</a></li>
+						</ul>
+					</li>					
+				</ul>
+            </li>
+			<li id="opstask">
+                <a href="#"><i class="fa fa-tasks"></i> <span class="nav-label">项目任务流程</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="workflow"><a href="{% url 'create_workflow_task' %}">创建作业流程</a></li>
+					<li class="create"><a href="{% url 'ansible_task_create' %}">创建发布任务</a></li>
+					<li class="task"><a href="{% url 'task_sheet_list' %}">发布任务列表</a></li>
+					<li class="record"><a href="{% url 'ansible_task_record' %}">任务发布记录</a></li>
+				</ul>
+            </li>
+			<li id="logs">
+                <a href="#"><i class="fa fa-hdd-o fa-fw"></i> <span class="nav-label">任务执行日志</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="playbook"><a href="{% url 'ansible_playbook_logs' %}">作业执行日志</a></li>
+					<li class="script"><a href="{% url 'ansible_script_logs' %}">脚本执行日志</a></li>
+				</ul>
+            </li>
+			<li id="tools">
+                <a href="#"><i class="fa fa-wrench"></i> <span class="nav-label">系统管理工具</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="upload"><a href="{% url 'systools_upload_files' %}">本地文件上传</a></li>
+					<li class="ansible"><a href="{% url 'ansible_model_cmd' %}">远程执行命令</a></li>
+				</ul>
+            </li>
+			<li id="users">
+                <a href="#"><i class="fa fa-user"></i> <span class="nav-label">用户权限管理</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="group"><a href="{% url 'user_group_list' %}">用户组管理</a></li>
+					<li class="user"><a href="{% url 'user_list' %}">用户管理</a></li>
+					<li class="perm"><a href="{% url 'perm_rule_list' %}">权限管理</a></li>
+				</ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endif %}
+{% if request.session.role_id == 1 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+		   {% include 'nav_profile.html' %}
+		    <li id="index">
+               <a href="{% url 'index' %}"><i class="fa fa-home"></i> <span class="nav-label">主页</span><span class="label label-info pull-right"></span></a>
+            </li>
+			<li id="cmdb">
+                <a href="#"><i class="fa fa-database"></i> <span class="nav-label">CMDB资源池</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="project"><a href="{% url 'cmdb_project_list' %}">项目平台</a></li>
+					<li class="app"><a href="{% url 'cmdb_app_list' %}">应用管理</a></li>
+					<li class="ansible"><a href="{% url 'cmdb_ansible_list' %}">ansbile分组</a></li>
+				</ul>
+            </li>
+			<li id="opstask">
+                <a href="#"><i class="fa fa-tasks"></i> <span class="nav-label">项目任务流程</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="workflow"><a href="{% url 'create_workflow_task' %}">创建作业流程</a></li>
+					<li class="create"><a href="{% url 'ansible_task_create' %}">创建发布任务</a></li>
+					<li class="task"><a href="{% url 'task_sheet_list' %}">发布任务列表</a></li>
+					<li class="record"><a href="{% url 'ansible_task_record' %}">任务发布记录</a></li>
+				</ul>
+            </li>
+			<li id="logs">
+                <a href="#"><i class="fa fa-hdd-o fa-fw"></i> <span class="nav-label">任务执行日志</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="playbook"><a href="{% url 'ansible_playbook_logs' %}">作业执行日志</a></li>
+					<li class="script"><a href="{% url 'ansible_script_logs' %}">脚本执行日志</a></li>
+				</ul>
+            </li>
+			<li id="tools">
+                <a href="#"><i class="fa fa-cog"></i> <span class="nav-label">系统管理工具</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+					<li class="upload"><a href="{% url 'systools_upload_files' %}">本地文件上传</a></li>
+				</ul>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endif %}

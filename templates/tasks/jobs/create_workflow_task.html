@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block self_head_css_js %}
+<link href="/static/css/task.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+		    <div class="ibox float-e-margins">
+			    <div class="ibox-title">
+					<h5>创建发布任务</h5>
+                    <!--<div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div> -->
+                </div>
+                <div class="ibox-content">
+					{% if msg %}
+                        <div class="alert alert-warning text-center">{{ msg }}</div>
+                    {% endif %}
+					<form id="task_create" name="checkform" method="post" class="form-horizontal">
+						{% csrf_token %}
+                        <div class="tab-content">
+							<div class="op-task-fixed-width-panel">
+								<div class="op-task-detail-row">
+									<div class="row-label">任务名称：</div>
+									<div class="row-value">
+										<div class="op-task-name-wrap">
+											<input class="form-control op-task-name" />
+											<div class="op-task-btn op-task-btn-save"><span class="cloud-icon save-blue normal"></span>保存</div>
+											<div class="op-task-btn op-task-btn-save-back"><span class="cloud-icon back-blue normal"></span>保存并返回</div>
+										</div>
+									</div>
+								</div>
+								<div class="op-task-detail-row">
+								<div class="row-label">任务节点：</div>
+									<div class="row-value"><div class="op-task-node-list-wrap"></div>
+										<div class="add-op-task-node-asset-wrap">
+											<div class="create-icon"></div>
+											<div class="create-label">添加节点内容</div>
+										</div>
+									</div>
+								</div>
+							</div>
+					     </div>
+					</form>	
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+   $(document).ready(function() {
+	$('#create_id').click(function(){
+	if($("#task_name").val() == ""){
+		swal("请填写完整表单");
+	
+	}else{
+	
+		$.ajax({
+			type:"post",
+			url:'{% url "create_workflow_task" %}',
+			data: $("form").serialize(),
+			async:true,
+			success: function(msg){
+				swal({ 
+				  title: msg,
+				  showCancelButton: true, 
+				  confirmButtonColor: "#18a689",
+				  confirmButtonText: "立即编排", 
+				  cancelButtonText: "稍后再说",
+				  closeOnConfirm: false, 
+				  closeOnCancel: true	
+				},
+				function(isConfirm){ 
+				  if (isConfirm) { 
+				    task_name = document.getElementById("task_name").value;
+
+				  }
+				});
+			}
+		});
+	}
+	return false;
+	});
+});
+</script>
+{% endblock %}

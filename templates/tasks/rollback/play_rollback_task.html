@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block self_head_css_js %}
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+		    <div class="ibox float-e-margins">
+			    <div class="ibox-title">
+					<h5>执行操作回退</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+				  <div id="wizard">
+					<ul>
+						<li><a href="#tab1" data-toggle="tab"><span class="label">1</span> 创建回退清单</a></li>
+						<li><a href="#tab2" data-toggle="tab"><span class="label">2</span> 执行回退任务</a></li>
+					</ul>
+					<div class="hr-line-dashed"></div>
+					<form id="form" name="checkform" method="post" class="form-horizontal">
+						{% csrf_token %}
+                        <div class="tab-content">
+
+							<div class="tab-pane" id="tab1">
+								<h4 class="widget-head-color-box">回退任务信息</h4>
+								<div class="hr-line-dashed"></div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">回退目标程序</label>
+										<div class="col-sm-10 col-lg-10">
+											<input type="button" id="app_name" name="app_name" class="form-control" value="{{ task_record.app_name }}" style="text-align: left;"/>
+										</div>
+                                </div>
+								<div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">执行主机分组</label>
+										<div class="col-sm-10 col-lg-10">
+											<input type="button" id="ansible_group" name="ansible_group" class="form-control" value="{{ task_record.ansible_group }}" style="text-align: left;"/>
+										</div>
+								</div>
+								<div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">程序备份文件</label>
+                                    <div class="col-sm-10 col-lg-10">
+										<input type="text" id="bk_file_id" name="backup_file" class="form-control" value="{{ task_record.backup_file }}" />
+                                    </div>
+								</div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">回退目标路径</label>
+                                    <div class="col-sm-10 col-lg-10">
+										<input type="button" id="rollback_path" name="rollback_path" class="form-control" value="{{ task_record.release_path }}" style="text-align: left;"/>
+                                    </div>
+                                </div>
+								<div class="hr-line-dashed"></div>
+								<h4 class="widget-head-color-box">程序重启控制</h4>
+								<div class="hr-line-dashed"></div>
+								<div class="form-group">
+								<label class="control-label col-sm-2 col-lg-2">是否单独重启</label>
+                                    <div class="col-sm-10">
+										<input type="radio" name="switch" value="y"><span style="margin-left: 10px;">重启</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
+										<input type="radio" name="switch" value="n"><span style="margin-left: 10px;">不重启</span>
+                                    </div>
+								</div>
+								<div class="hr-line-dashed"></div>
+								<ul class="pager wizard">
+									<li class="next"><a href="#">去执行</a></li>
+								</ul>
+							</div>
+
+							<div class="tab-pane" id="tab2">
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">Task__id:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="task_id" name="tasks" class="task_result" value="" style="text-align: left" />
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">任务状态:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="status_id" name="task_status" class="task_result" value="" style="text-align: left" />
+									</div>
+								</div>
+								<div class="form-group" id="result">
+									<label class="control-label col-sm-2 col-lg-2">执行日志:</label>
+									<div class="col-sm-10 col-lg-10">
+									<textarea class="task_result" rows="20" id="task_result" readonly> </textarea>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="start_id" class="btn btn-xs btn-primary col-md-offset-5" value="执行任务" />
+										<input type="button" id="stop_id" class="btn btn-xs btn-danger col-md-offset-2" value="取消任务" onclick="get_task_id()" disabled />
+									</div>
+								</div>
+								<div class="hr-line-dashed"></div>
+								<ul class="pager wizard">
+									<li class="previous"><a href="#">返回</a></li>
+								</ul>							
+							</div>
+
+					     </div>
+					  </form>
+				   </div>	
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script type="text/javascript">
+//set csrf
+    $.ajaxSetup({headers: {"X-CSRFToken":'{{ csrf_token }}'}});
+</script>
+{% include './play_task.html' %}
+<script src="/static/js/jquery.bootstrap.wizard.js" type="text/javascript"></script>
+<script src="/static/js/prettify.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  	$('#wizard').bootstrapWizard({'tabClass': 'bwizard-steps'});
+});
+</script>
+{% endblock %}

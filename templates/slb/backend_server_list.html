@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load customtags %}
+{% block self_head_css_js %}
+<link rel="stylesheet" type="text/css" href="/static/bootstrap-editable/css/bootstrap-editable.css"/> 
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>后端服务器</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+				<div class="ibox-content">
+                    <!-- Advanced Tables -->
+                    <div class="panel-body">
+                        <a href="{% url 'backend_server_add' %}" class="btn btn-sm btn-primary "> 添加后端服务器 </a>
+					    <a class="btn btn-sm btn-danger" id="del_check"> 删除所选 </a>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped " id="bks_tb" name="bks_tb">
+                                <thead>
+									<tr>
+										<th class="text-center">
+											<input id="checkall" type="checkbox" class="i-checks" name="checkall" value="checkall" data-editable='false'>
+										</th>
+										<th class="text-center"> 服务器名称</th>
+										<th class="text-center"> 所属负载均衡</th>
+										<th class="text-center"> 所属区域</th>
+										<th class="text-center"> 主机地址</th>
+										<th class="text-center"> 端口</th>
+										<th class="text-center"> 权重</th>
+										<th class="text-center"> 失败次数</th>
+										<th class="text-center"> 超时时间</th>
+										<th class="text-center"> 操作</th>
+									</tr>
+                                </thead>
+                                <tbody>
+									{% for bkserver in bks %}
+										<tr class="gradeX">
+											<td class="text-center" name="id" value="{{ bkserver.id }}" data-editable='false'>
+												<input name="id" value="{{ bkserver.id }}" type="checkbox" class="i-checks" />
+											</td>
+											<td class="text-center"> {{ bkserver.server_name }} </td>
+											<td class="text-center"> {{ bkserver.slb_name }} </td>
+											<td class="text-center"> {{ bkserver.server_area }}</td>
+											<td class="text-center"> {{ bkserver.server_ip }} </td>
+											<td class="text-center"> {{ bkserver.server_port }} </td>
+											<td class="text-center"><a href="#" data-pk="{{ bkserver.id }}" data-placement="bottom">{{ bkserver.weight }}</a></td>
+											<td class="text-center">{{ bkserver.max_fails }}</td>
+											<td class="text-center">{{ bkserver.fail_timeout }}</td>
+											<td class="text-center">
+												<button type="button" value="{{ bkserver.id }}" class="btn btn-success" onclick="exec_Modal(this.value)">编辑</button>
+											</td>
+										</tr>
+									{% endfor %}			
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                    </div>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_bkserver" tabindex="-1" role="dialog" aria-labelledby="bk_server" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+<script src="/static/dataTables/jquery.dataTables.js"></script>
+<script src="/static/dataTables/dataTables.bootstrap.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#bks_tb').dataTable({
+		 language: {
+		   "sProcessing": "处理中...",
+		   "sLengthMenu": "显示 _MENU_ 项结果",
+		   "sZeroRecords": "没有匹配结果",
+		   "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+		   "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+		   "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+		   "sInfoPostFix": "",
+		   "sSearch": "搜索:",
+		   "sUrl": "",
+		   "sEmptyTable": "表中数据为空",
+		   "sLoadingRecords": "载入中...",
+		   "sInfoThousands": ",",
+		   "oPaginate": {
+			   "sFirst": "首页",
+			   "sPrevious": "上页",
+			   "sNext": "下页",
+			   "sLast": "末页"
+		   },
+		   "oAria": {
+			   "sSortAscending": ": 以升序排列此列",
+			   "sSortDescending": ": 以降序排列此列"
+		   }
+		},
+         columnDefs : [ {
+             targets : 0,
+             "orderable" : false
+         } ],
+        "order" : [ [ 1, 'asc' ] ], 
+        "paginationType": "full_numbers",      //详细分页组，可以支持直接跳转到某页 
+		});
+    });
+</script>
+{% endblock %}
+{% block self_footer_js %}>
+<script type="text/javascript" src="/static/bootstrap-editable/js/bootstrap-editable.js"></script>
+<script type="text/javascript">
+//set csrf
+    $.ajaxSetup({headers: {"X-CSRFToken":'{{ csrf_token }}'}});
+</script>
+<script>
+$(function() {    
+    //$.fn.editable.defaults.mode = 'popup';
+    $('#bks_tb a').editable({
+		type: 'text',
+		title: '修改权重',
+		mode: "popup",
+		url: "{% url 'backend_server_update' %}",
+		validate: function(value) {
+			if(parseInt(value) <0 || parseInt(value) >100) {
+				return '权重设置范围：0-100';
+			}
+		},
+		beforeSend: function () {
+			$("loading").show();
+		},
+		success: function(response) {
+		    var result=jQuery.parseJSON(response)
+			if(result.msg == 'success'){
+				swal({
+				  title: "修改成功",
+				  timer: 1000
+				});
+			}else{
+				return result.msg;
+			}
+        },
+	 });
+});
+ 
+</script> 
+
+<script type="text/javascript">
+    function exec_Modal(id){
+        $('#modal_bkserver').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'backend_server_edit' %}?id=" + id
+       });
+	   $('#modal_bkserver').on('hidden.bs.modal',function(){
+			$(this).removeData("bs.modal");
+		});
+    }
+</script>
+<script>
+//点击全选,再次点击取消全选
+	$('input[name="checkall"]').click(function(){
+		if($(this).is(':checked')){
+			$('input[name="id"]').each(function(){
+				$(this).prop("checked",true);
+			});
+		}else{
+			$('input[name="id"]').each(function(){
+				$(this).removeAttr("checked",false);
+			});
+		}
+				
+	});
+</script>
+<script> 
+
+$(document).ready(function(){
+    $('#del_check').click(function(){
+        var check_array = [];
+        if (confirm('确定删除?')){
+            $('tr.gradeX input:checked').each(function(){
+                check_array.push($(this).attr('value'))
+            });
+            $.get(
+					'{% url "backend_server_del" %}',
+                    {id: check_array.join(',')},
+                    function(data){
+                        $('tr.gradeX input:checked').closest('tr').remove();
+                    }
+            );
+            return false;
+        }
+    })
+});
+
+</script>
+{% endblock %}

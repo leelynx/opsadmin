@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load bootstrap %}
+{% block self_head_css_js %}
+<link href="/static/css/vaildator/jquery.validator.css" rel="stylesheet">
+<script src="/static/js/validator/jquery.validator.js"></script>
+<script src="/static/js/validator/zh_CN.js"></script>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-10">
+            <div class="ibox float-e-margins">
+                <div id="ibox-content" class="ibox-title">
+                    <h5> 修改应用信息 </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ibox-content">
+                    <div class="panel blank-panel">
+                        <div class="panel-body">
+                            <div class="tab-content">
+                                <div id="tab-1" class="ibox float-e-margins tab-pane active">
+                                    {% if error %}
+                                        <div class="alert alert-warning text-center">{{ error }}</div>
+                                    {% endif %}
+                                    {% if msg %}
+                                        <div class="alert alert-success text-center">{{ msg }}</div>
+                                    {% endif %}
+
+                                    <form id="appForm" method="post" class="form-horizontal">
+										{% csrf_token %}
+										{{ app_form.app_alias|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>							
+										{{ app_form.app_name|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.app_type|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.frameworks|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+                                        {{ app_form.main_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.service_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.root_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.run_port|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+                                        {{ app_form.svn_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										{{ app_form.backup_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+                                        {{ app_form.work_path|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>	
+										{{ app_form.app_ip|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>	
+										{{ app_form.app_status|bootstrap_horizontal }}
+										<div class="hr-line-dashed"></div>
+										
+                                        <div class="form-group">
+                                            <div class="col-sm-4 col-sm-offset-5">
+                                                <button class="btn btn-white" type="reset"> 重置 </button>
+                                                <button class="btn btn-primary" type="submit"> 提交 </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block self_footer_js %}
+<script>
+    $('#appForm').validator({
+        timely: 2,
+        theme: "yellow_right_effect",
+        rules: {
+            check_ip: [/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])(\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])){3}$/, 'ip地址不正确'],
+            check_port: [/^\d{1,5}$/, '端口号不正确'],
+        },
+        fields: {
+            "app_name": {
+                rule: "required;",
+                tip: "应用名称",
+                ok: "",
+                msg: {required: "必须填写!"}
+            },
+
+        },
+        valid: function(form) {
+            form.submit();
+        }
+    });
+
+</script>
+
+{% endblock %}

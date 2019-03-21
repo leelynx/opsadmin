@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block self_head_css_js %}
+<link rel="stylesheet" type="text/css" href="/static/css/ace/ace.css">
+<script src="/static/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/src-noconflict/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+<link href="/static/css/task.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+<style type="text/css">
+input[type=radio], input[type=checkbox] {
+    margin: 4px 0 0;
+    margin-top: 1px \9;
+    line-height: normal;
+}
+
+</style>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+		    <div class="ibox float-e-margins">
+			    <div class="ibox-title">
+					<h5>修改作业脚本</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+					<form id="task_form" method="post" class="form-horizontal">
+						{% csrf_token %}
+						
+						<div class="form-group">
+							<div class="op-task-detail-row">
+								<label class="control-label col-sm-2 col-lg-2">脚本名称</label>
+								<div class="col-sm-10 col-lg-10">
+									<div class="op-task-name-wrap">
+										<input type="text" id="script_name" name="job" value="{{ scripts.script_name }}" class="form-control op-task-name" />
+										<div class="op-task-btn op-task-btn-save" id="save_id"><span class="cloud-icon save-blue normal"></span>保存</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-2 col-lg-2">脚本参数</label>
+							<div class="col-lg-4">
+								<input type="text" id="script_arg" name="job" value="{{ scripts.script_arg }}" class="form-control" />
+							</div>
+							<label class="control-label col-sm-2 col-lg-2">执行超时</label>
+							<div class="col-lg-4">
+							  <input type="number" min="60" max="900" name="job" value="{{ scripts.exec_timeout }}" title="请输入脚本执行超时时间，单位为秒，范围60-900，默认180" id="timeout" name="job" class="form-control">
+							</div>
+						</div>
+						<input  type="hidden" class="form-control" id="task_uuid" name="task_uuid" value="{{ scripts.script_uuid }}">
+						<div class="form-group">
+							<label class="control-label col-sm-2 col-lg-2">脚本内容</label>
+								<div class="col-sm-10 col-lg-10">
+									<div class="ijobs-input ace-code-contain">
+											<div class="code codediv">
+												<div id="codeTab" class="codeTab">
+												  {% ifequal scripts.script_type 'shell'%}
+													<label class="radio-inline"><input type="radio" id="shell" name="lang" value="shell" checked="checked" onclick="get_shell(this.value)">shell</label>
+													<label class="radio-inline"><input type="radio" id="python" name="lang" value="python" onclick="get_shell(this.value)">python</label>
+												  {% else %}
+												    <label class="radio-inline"><input type="radio" id="shell" name="lang" value="shell" onclick="get_python(this.value)">shell</label>
+													<label class="radio-inline"><input type="radio" id="python" name="lang" value="python" checked="checked" onclick="get_python(this.value)">python</label>
+												  {% endifequal %}
+												</div>
+										<div id="code_id" name="code" class="form-control"></div>
+										</div>
+									</div>
+								</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-sm-2 col-lg-2">执行调试</label>
+							<div class="col-sm-10 col-lg-10">
+							  	<select class="form-control" name="ansible_debug" id="ansible_debug">
+								   {% ifequal scripts.debug_mode 'on' %}
+									  <option value="on" name="ansible_model" checked>开启</option>
+									  <option value="off" name="ansible_model">关闭</option>
+								   {% else %}
+								      	<option value="off" name="ansible_model" checked>关闭</option>
+										<option value="on" name="ansible_model" >开启</option>
+								    {% endifequal %}
+								</select>
+							</div>
+						</div>
+							<div class="form-group">
+							<label class="control-label col-sm-2 col-lg-2">执行主机</label>
+								<div class="col-sm-10 col-lg-10" id="add_table">
+									<button type="button" id="host_select" class="btn btn-primary" required><i class="fa fa-laptop"></i>选择服务器</button>
+								    <div id="show_id">
+									    <table class="table table-striped table-bordered table-hover" id="host_table"> 
+										<thead>
+											<tr>  
+												<th>主机IP</th><th>主机名</th><th>操作</th>
+											</tr>
+										</thead>
+											<tbody>
+											{% for host in host_list %}
+												<tr class="gradeX">
+													<td>{{ host }}</td>
+													<td>{{ host }}</td>
+													<td>
+														<button class="btn btn-xs btn-danger" onclick="deleteRow(this)">删除</button></td>
+													</td>
+												</tr>
+											{% endfor %}
+											</tbody>
+										</table>
+								    </div>
+								</div>
+							</div>
+						<div class="hr-line-dashed"></div>
+					</form>
+				   </div>	
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_host" tabindex="-1" role="dialog" aria-labelledby="ansible_host" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+
+{% endblock %}
+{% block self_footer_js %} 
+
+
+<script type="text/javascript">
+if(document.getElementById("shell").checked){
+	get_aceditor("sh");
+}else if(document.getElementById("python").checked) {
+   get_aceditor("python");
+}
+function get_shell(val){  
+    if(val == "shell"){
+		get_aceditor("sh");
+	}else{
+	    set_default_ace("python", "#!/usr/bin/env python\n# -*- coding: utf8 -*-\n");
+	}
+} 
+
+function get_python(val){  
+    if(val == "python"){
+		get_aceditor("python");
+	}else{
+	    set_default_ace("sh", "#!/bin/bash\n");
+	}
+} 
+
+function get_aceditor(mode) {
+    $('#code_id').height(300);
+	ace.require("ace/ext/language_tools");
+	var editor = ace.edit("code_id");
+	var content = `{{ scripts.code | safe}}`;
+	editor.setValue(content);
+	editor.focus();
+    editor.$blockScrolling = Infinity
+	editor.setFontSize(12);
+	editor.session.setMode("ace/mode/" + mode);
+	editor.getSession().setUseWrapMode(true);
+	editor.setShowPrintMargin(false); 
+    editor.setHighlightActiveLine(false);
+	editor.setOptions({
+		enableBasicAutocompletion: true,
+		enableSnippets: true,
+		enableLiveAutocompletion: true
+	});
+	editor.setTheme("ace/theme/monokai");
+}
+
+function set_default_ace(mode, content) {
+    $('#code_id').height(300);
+	ace.require("ace/ext/language_tools");
+	var editor = ace.edit("code_id");
+	editor.setValue("");
+	editor.insert(content);
+	editor.session.setMode("ace/mode/" + mode);
+	editor.focus();
+    editor.$blockScrolling = Infinity
+	editor.setFontSize(12);
+	editor.getSession().setUseWrapMode(true);
+	editor.setShowPrintMargin(false); 
+    editor.setHighlightActiveLine(false);
+	editor.setOptions({
+		enableBasicAutocompletion: true,
+		enableSnippets: true,
+		enableLiveAutocompletion: true
+	});
+	editor.setTheme("ace/theme/monokai");
+}
+</script>
+
+<script type="text/javascript">
+	$('#host_select').on('click',function(){
+	  $('#modal_host').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'get_host_list' %}"
+		});
+	 // $('#modal_host').on('hidden.bs.modal',function(){
+	//		$(this).removeData("bs.modal");
+	//	});
+    });
+</script>
+<script type="text/javascript">
+//set csrf
+    $.ajaxSetup({headers: {"X-CSRFToken":'{{ csrf_token }}'}});
+
+/** 
+ * 遍历表格内容返回数组
+ * @return Array
+ */ 
+ //获取选中主机列表
+ function get_data(){
+    var data = [];
+	var host = "";
+    var tab=document.getElementById("host_table");
+	if(tab == null){
+		return host;
+	}else{
+		var rows=tab.rows;
+		for(var i=1;i<rows.length;i++){
+			host += rows[i].cells[1].innerHTML + ",";
+		}
+		host = host.substring(0, host.lastIndexOf(','));
+		return host;
+	}
+ }
+</script>
+<script type="text/javascript">
+
+function deleteRow(obj){ 
+    if (confirm('确定删除')) {
+		$("table#host_table tr").click(function() {
+		    //清除原始dataTable
+			$("#host_table").dataTable().fnDestroy();
+			$(this).remove(); //删除tr
+			//重新初始化DataTable
+			$('#host_table').DataTable({
+				"aLengthMenu": [[4, 6, 8, 10, 12, 14, 16, 18, 20, -1], ["4", "6", "8", "10", "12", "14", "16", "18", "20", "all"]],
+				"iDisplayLength":4,
+				"aaSorting": [[2, "asc"]],
+				"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+				"bAutoWidth": false,
+				"language": {
+					"url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+				},
+				columns: [
+					{data: "主机IP"},
+					{data: "主机名"},
+					{data: "操作"}
+				]
+			});
+		});
+   }
+}
+</script>
+<script type="text/javascript">
+   $(document).ready(function() {
+    //$("#show_id").hide(); //隐藏table
+		$('#save_id').click(function(){
+			host = get_data();
+			if(host === ""){
+				swal("请选择服务器");
+			}
+			//console.log(host);
+			editor = ace.edit("code_id");
+			var code = editor.getValue();
+			code = encodeURIComponent(code);
+			if($("#script_name").val() == ""){
+				swal("请填写完整表单");
+			
+			}else{
+				var data = $("form").serialize() + "&code=" + code + "&host=" + host;
+				$.ajax({
+					type: "post",
+					url: "{% url 'ansible_edit_script' scripts.id %}",
+					data: data,
+					async:true,
+					success: function(response){
+						if (response["code"] == "500"){
+							window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.error);
+						}
+						else{
+							window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);					
+						}
+					},
+					error:function(response){
+						window.wxc.xcConfirm("保存异常", window.wxc.xcConfirm.typeEnum.error);
+					}
+				});
+			}
+			return false;
+		});
+});
+</script>
+{% endblock %}

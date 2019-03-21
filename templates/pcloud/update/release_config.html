@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block self_head_css_js %}
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+		    <div class="ibox float-e-margins">
+			    <div class="ibox-title">
+					<h5>创建发布作业</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+				  <div id="wizard">
+					<ul>
+						<li><a href="#tab1" data-toggle="tab"><span class="label">1</span> 创建发布清单</a></li>
+						<li><a href="#tab2" data-toggle="tab"><span class="label">2</span> 执行发布任务</a></li>
+					</ul>
+					<div class="hr-line-dashed"></div>
+					<form id="task_form" method="post" class="form-horizontal">
+						{% csrf_token %}
+                        <div class="tab-content">
+
+							<div class="tab-pane" id="tab1">
+                                <h4 class="widget-head-color-box">选择发布银行</h4>
+								<div class="hr-line-dashed"></div>
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">选择发布主机</label>
+									  <div class="col-sm-10" id="ab_group_id">
+										<div class="form-control" id="add_ab_group" style="height:40px;">
+										   <p id="ab_group_p">
+											</p>
+										</div>
+									  </div>
+								</div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">SERVICE程序</label>
+                                      <div class="col-sm-10" id="bank_service_id">
+                                        <div class="form-control" id="add_bank_service" style="height:40px;overflow-y:scroll">
+                                           <p id="bank_service">
+                                            </p>
+                                        </div>
+                                      </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">ROOT主程序</label>
+                                      <div class="col-sm-10" id="bank_root_id">
+                                        <div class="form-control" id="add_bank_root" style="height:40px;overflow-y:scroll">
+                                           <p id="bank_root">
+                                            </p>
+                                        </div>
+                                      </div>
+                                </div>	
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2 col-lg-2">进件接口服务</label>
+                                      <div class="col-sm-10" id="bank_interface_id">
+                                        <div class="form-control" id="add_bank_interface" style="height:40px;overflow-y:scroll">
+                                           <p id="bank_interface">
+                                            </p>
+                                        </div>
+                                      </div>
+                                </div>								
+								<div class="hr-line-dashed"></div>
+								<h4 class="widget-head-color-box">应用配置更新</h4>									
+								<div class="hr-line-dashed"></div>
+								<div class="form-group">
+								<label class="control-label col-sm-2 col-lg-2">配置更新方式</label>
+                                    <div class="col-sm-10">
+										 <input type="radio" id="add" name="arg" value="add" onclick="getSelect(this.value)"><span style="margin:8px">新增定参配置</span>&nbsp;&nbsp;&nbsp;&nbsp;
+										 <input type="radio" id="add_p" name="arg" value="add_p" onclick="getSelect(this.value)"><span style="margin:8px">批量新增变参</span>&nbsp;&nbsp;&nbsp;&nbsp;
+										 <input type="radio" id="del" name="arg" value="del" onclick="getSelect(this.value)"><span style="margin:8px">删除参数配置</span>&nbsp;&nbsp;&nbsp;&nbsp;
+										 <input type="radio" id="mod" name="arg" value="mod" onclick="getSelect(this.value)"><span style="margin:8px">修改参数配置</span>
+                                    </div>
+								</div>
+								<div class="hr-line-dashed"></div>
+								<div id="src_add" class="form-group" style="display:none">
+								<label class="control-label col-sm-2 col-lg-2">增加定量参数</label>
+									<div class="col-sm-10 col-lg-10">
+										<textarea id="add_arg" name="add_arg" class="form-control" rows="5" cols="5"></textarea>
+									</div>
+								</div>
+								
+								<div id="src_add_p" class="form-group" style="display:none">
+								<label class="control-label col-sm-2 col-lg-2">增加变量参数</label>
+									<div class="col-sm-10 col-lg-10">
+										<textarea id="add_p_arg" name="add_p_arg" class="form-control" rows="10" cols="15" placeholder="db.url=$db_url 
+db.username=$db_user 
+db.password=$db_pass "></textarea>
+									</div>
+								</div>
+										
+								<div id="src_del" class="form-group" style="display:none">
+								<label class="control-label col-sm-2 col-lg-2">Sed正则删除</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="text" id="del_arg" name="del_arg" class="form-control"  placeholder="sed正则,Eaxmple: sed -i '/test1=12346/d'"/>
+									</div>
+								</div>	
+								<div id="src_mod" class="form-group" style="display:none">
+								<label class="control-label col-sm-2 col-lg-2">Sed正则修改</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="text" id="mod_arg" name="mod_arg" class="form-control" placeholder="仅支持sed正则,Eaxmple: sed -i 's@checkoutTimeout=.*@checkoutTimeout=10@g'"/>
+									</div>
+								</div>
+								<div class="form-group">
+								<label class="control-label col-sm-2 col-lg-2">发布执行方式</label>
+									<div class="col-sm-6 col-lg-4">
+										<input type="checkbox"  id="exe_mode" name="exe_mode" checked />
+									</div>
+								</div>	
+								<div class="hr-line-dashed"></div>
+								<h4 class="widget-head-color-box">应用重启管理</h4>
+								<div class="hr-line-dashed"></div>
+								<div class="form-group">
+								<label class="control-label col-sm-2 col-lg-2">是否单独重启</label>
+                                    <div class="col-sm-10">
+										<input type="radio" name="switch" value="y"><span style="margin-left: 10px;">重启</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
+										<input type="radio" name="switch" value="n"><span style="margin-left: 10px;">不重启</span>
+                                    </div>
+								</div>
+								<div class="hr-line-dashed"></div>
+								<ul class="pager wizard">
+									<li class="next"><a href="#">去执行</a></li>
+								</ul>
+							</div>
+
+							<div class="tab-pane" id="tab2">
+	
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">Task__id:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="task_id" name="tasks" class="task_result" value="" style="text-align: left" />
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">任务状态:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="status_id" name="task_status" class="task_result" value="" style="text-align: left" />
+									</div>
+								</div>
+								<div class="form-group" id="result">
+									<label class="control-label col-sm-2 col-lg-2">执行日志:</label>
+									<div class="col-sm-10 col-lg-10">
+									<textarea class="task_result" rows="20" id="task_result" disabled> </textarea>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="start_id" class="btn btn-xs btn-primary col-md-offset-5" value="执行任务" />
+										<input type="button" id="stop_id" class="btn btn-xs btn-danger col-md-offset-2" value="取消任务" onclick="get_task_id()" disabled />
+									</div>
+								</div>
+								<div class="hr-line-dashed"></div>
+								<ul class="pager wizard">
+									<li class="previous"><a href="#">返回</a></li>
+								</ul>
+							</div>
+
+					     </div>
+					  </form>
+				   </div>	
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_root" tabindex="-1" role="dialog" aria-labelledby="banklist_root" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box_root">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_service" tabindex="-1" role="dialog" aria-labelledby="banklist_service" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box_service">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_group" tabindex="-1" role="dialog" aria-labelledby="ansible_group" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="modal_interface" tabindex="-1" role="dialog" aria-labelledby="banklist_interface" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box_interface">
+        <!--此部分为主体内容，将远程加载进来-->
+      </div>
+   </div>
+</div>
+
+{% endblock %}
+{% block self_footer_js %} 
+<script type="text/javascript">
+    $('#add_ab_group').on('click',function(){
+	  $('#modal_group').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'pcloud_get_ansible_group' %}"
+		});
+    });
+
+
+</script>
+<script type="text/javascript">
+ function getSelect(val){
+    var val1 = document.getElementById("add").value
+	var val2 = document.getElementById("add_p").value
+	var val3 = document.getElementById("del").value
+	if (val === val1){
+	  $("#src_add").removeAttr("style"); 
+	  document.getElementById("src_add_p").style.display="none";
+	  document.getElementById("src_del").style.display="none";
+	  document.getElementById("src_mod").style.display="none";
+   }
+   else if (val === val2){
+      $("#src_add_p").removeAttr("style");
+	  document.getElementById("src_del").style.display="none";
+	  document.getElementById("src_mod").style.display="none";
+	  document.getElementById("src_add").style.display="none";
+	  
+   }else if (val === val3){
+      $("#src_del").removeAttr("style");
+	  document.getElementById("src_add").style.display="none";
+	  document.getElementById("src_mod").style.display="none";
+	  document.getElementById("src_add_p").style.display="none";
+   
+   }
+   else{
+      $("#src_mod").removeAttr("style");
+	  document.getElementById("src_add").style.display="none";
+	  document.getElementById("src_del").style.display="none";
+	  document.getElementById("src_add_p").style.display="none";
+  }
+ }
+</script>
+<script type="text/javascript">
+	 $(window).on('load', function () {
+			   
+		$('.selectpicker').selectpicker({
+					'selectedText': 'cat'
+			});
+	 });
+    $(document).ready(function () {
+        $('.select2').select2();
+        $('.select2-system-user').select2();
+    });
+
+    $('#add_bank_root').on('click',function(){
+        $('#modal_root').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'pcloud_get_app_list' %}?app_type={{ app_type }}&app=root"
+       });
+		
+    });
+
+	
+	$('#add_bank_service').on('click',function(){
+     //   $('#modal_service').modal('show');
+	  $('#modal_service').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'pcloud_get_app_list' %}?app_type={{ app_type }}&app=service"
+		});
+    });
+	$('#add_bank_interface').on('click',function(){
+     //   $('#modal_service').modal('show');
+	  $('#modal_interface').modal({
+        show: true,
+        backdrop: 'static',
+        keyboard: 'false',
+        remote:"{% url 'pcloud_get_app_list' %}?app_type={{ app_type }}&app=interface"
+		});
+    });
+</script>
+<script type="text/javascript">
+//set csrf
+    $.ajaxSetup({headers: {"X-CSRFToken":'{{ csrf_token }}'}});
+</script>
+<script src="/static/js/jquery.bootstrap.wizard.js" type="text/javascript"></script>
+<script src="/static/js/prettify.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  	$('#wizard').bootstrapWizard({'tabClass': 'bwizard-steps'});
+});
+</script>
+<script type="text/javascript">     
+$('[name="exe_mode"]').bootstrapSwitch({
+		onText:"串行",
+		offText:"并行",
+		onColor:"info",
+		offColor:"success",
+		size:"small"
+		/*onSwitchChange:function(event,state){
+			if(state==true){
+				$(this).val("1");
+			}else{
+				$(this).val("2");
+			}
+		}*/
+	})
+</script> 
+<script type="text/javascript">
+   $(document).ready(function() {
+		var read_flag = false;
+		$('#start_id').click(function(){
+			document.getElementById('start_id').disabled=true;
+			document.getElementById('stop_id').disabled=false;
+			var exe_mode = $('#exe_mode').bootstrapSwitch('state');
+			var data = $("form").serialize() + "&exe_mode=" + exe_mode;
+			var read_flag = true;
+			var state = 'PENDING';
+			$("#status_id").val(state);
+			$.ajax({
+				type:"post",
+				url:"{% url 'pcloud_release_config' %}",
+				data: data,
+				async:true,
+				success: function(result){
+					if(result['code'] == '200'){
+						$("#task_id").val(result['task_id']);
+						read_log({'seek': 0 , 'task_id': result['task_id'], 'log_file': result['log_file'], 'job_name':result['job_name'], 'inventory':result['inventory']});
+						$('#task_result').html("start read ...").show();
+					}else{
+					   document.getElementById('start_id').disabled=false;
+					   window.wxc.xcConfirm(result['msg'], window.wxc.xcConfirm.typeEnum.error);
+					}
+				},
+				error: function(err){
+				    document.getElementById('start_id').disabled=false;
+					window.wxc.xcConfirm('运行失败', window.wxc.xcConfirm.typeEnum.error);
+				}
+			});
+		});	
+	});
+
+function read_log(data){
+   	$.ajax({
+		type:"post",
+		url:"{% url 'pcloud_read_ansible_log' %}",
+		data:data,
+		async:true,
+		success: function(result){
+		    var msg=JSON.parse(result);
+			$('#task_result').html(msg.logs).show();
+			if(msg.state == 'REVOKED'){
+			    $("#status_id").val(msg.state);
+				$('#task_result').html('end read').show();
+				var read_flag = false;
+				return;
+			};
+			state = msg.state;
+			if(state == "SUCCESS"){
+				$("#status_id").val("FINISHED");
+			}else{
+				$("#status_id").val(state);
+			}
+			read_flag = msg.read_flag;
+			if(read_flag == false){
+				swal({
+				  title: "任务已完成",
+				  text: "5秒后,自动关闭 ...",
+				  timer: 5000
+				});;
+				document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+                //$('#task_result').html("end read").show();
+			}else{
+				setTimeout(function() { read_log(data)}, 2000);  // wait every 5 second to read log
+				if(document.getElementById("task_result").scrollTop + 1000>=document.getElementById("task_result").scrollHeight || document.getElementById("task_result").scrollTop == 0){
+					setTimeout(function(){
+						document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+					},100);
+				}
+			}
+		},
+		error: function(err){
+            swal(err);
+        }
+	});
+
+
+
+}
+
+function get_task_id(){
+	swal({
+	  title: "确定取消该任务?",
+	  text: "取消任务后将停止执行,请谨慎操作!",
+	  type: "warning",
+	  showCancelButton: true,
+	  confirmButtonColor: "#ed5565",
+	  confirmButtonText: "是的,取消它!",
+	  cancelButtonText: "我再想想吧...",
+	  closeOnConfirm: false,
+	  closeOnCancel: false
+	},
+	function(isConfirm){
+	  if (isConfirm) {
+		var task_id = document.getElementById("task_id").value;
+		data = {"task_id": task_id}
+		$.ajax({
+			type:"post",
+			url:"{% url 'pcloud_revoke_ansible_job' %}",
+			data:data,
+			async:true,
+			success: function(result){
+				if(result['code'] == '200'){
+				      swal(result['message'], result['message'], "success");
+				}else{
+				      swal(result['message'], result['message'], "error");
+				}
+			},
+			error: function(err){
+				swal(err);
+			}
+		});
+	 
+	  } else {
+		swal("取消操作", "您已取消停止任务的操作 :)", "error");
+	  }
+	});
+
+
+}
+</script>
+{% endblock %}

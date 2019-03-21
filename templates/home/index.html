@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+  <!-- Morris charts -->
+  <link rel="stylesheet" href="/static/mirrors/morris.css">
+  <link rel="stylesheet" href="/static/mirrors/fonts.css">
+  <style>
+  .ibox-title h5 {
+	  display: inline-block;
+	  font-size: 12px;
+	  margin: 0 0 7px;
+	  padding: 0;
+	  text-overflow: ellipsis;
+	  float: left;
+	}
+  </style>
+
+{% endblock %}
+{% block content %}
+{% include './nav_bar.html' %}
+
+{% include './charts.html' %}
+{% endblock %}
+{% block self_footer_js %}
+<script src="/static/mirrors/morris.js"></script>
+<script src="/static/mirrors/raphael.min.js"></script>
+<script src="/static/mirrors/adminlte.min.js"></script>
+<script type="text/javascript">
+  $(function () {
+	Morris.Donut({
+        element: 'morris-donut-chart',
+        data: [        
+			{label: "revoke", value: "{{ sum_revoke_task }}"},
+			{label: "failure", value: "{{ sum_failed_task }}"},
+			{label: "success", value: "{{ sum_success_task }}"} 
+		],
+        resize: true,
+        colors: ["#3c8dbc", "#f56954", "#00a65a"],
+    });
+  });
+  $(function () {
+ 	var chart = Morris.Bar({
+			element: 'morris-bar-chart',
+			data: [{x:'1月',a:0}],
+			xkey: 'x',
+			ykeys: ['a', 'b', 'c', 'd', 'e', 'f'],
+			labels: ['私有云平台', '公有云平台', '支付网关', '支付通知', 'CMS管理系统', '终端支付平台'],
+			hideHover: 'auto',
+			resize: true,
+			barColors: ['#1ab394', '#ed5565', "#3c8dbc", "#f56954", "#00a65a", "#23c6c8"],
+		});
+		// Fire off an AJAX request to load the data
+		$.ajax({
+			type: "GET",
+			dataType: 'json',
+			url: "{% url 'get_chart_data' %}", // This is the URL to the API
+
+		})
+        .done(function (data) {
+            // When the response to the AJAX request comes back render the chart with new data
+            chart.setData(data);
+        })
+        .fail(function () {
+            // If there is no communication between the server, show an error
+            alert("error occured");
+       });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+<div class="wrapper wrapper-content animated fadeInRight">
+	<div class="row">
+		<div class="col-lg-3">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<span class="label label-success pull-right">Hosts</span>
+					<h5>主机统计</h5>
+				</div>
+				<div class="ibox-content">
+					<h1 class="no-margins">{{ hosts }}</h1>
+					<div class="stat-percent font-bold text-success">{{ hosts_percent }} <i class="fa fa-bolt"></i></div>
+					<small>Total hosts</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<span class="label label-info pull-right">Projects</span>
+					<h5>应用统计</h5>
+				</div>
+				<div class="ibox-content">
+					<h1 class="no-margins">{{ projects }}</h1>
+					<div class="stat-percent font-bold text-info">{{ projects_percent}} <i class="fa fa-level-up"></i></div>
+					<small>Total projects</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<span class="label label-primary pull-right">Tasks</span>
+					<h5>任务统计</h5>
+				</div>
+				<div class="ibox-content">
+					<h1 class="no-margins">{{ tasks }}</h1>
+					<div class="stat-percent font-bold text-navy">{{ tasks_percent }} <i class="fa fa-level-up"></i></div>
+					<small>Total tasks</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<span class="label label-danger pull-right">Scripts</span>
+					<h5>脚本库</h5>
+				</div>
+				<div class="ibox-content">
+					<h1 class="no-margins">{{ jobs }}</h1>
+					<div class="stat-percent font-bold text-danger">{{ jobs_percent }}<i class="fa fa-level-up"></i></div>
+					<small>Total scripts</small>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-12">
+			 <div class="ibox float-e-margins">
+				 <div class="ibox-title">
+					 <h5>项目发布统计 </h5>
+					 <div class="ibox-tools">
+						 <a class="collapse-link">
+							 <i class="fa fa-chevron-up"></i>
+						 </a>
+						 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+							 <i class="fa fa-wrench"></i>
+						 </a>
+						 <ul class="dropdown-menu dropdown-user">
+							 <li><a href="#">Config option 1</a>
+							 </li>
+							 <li><a href="#">Config option 2</a>
+							 </li>
+						 </ul>
+						 <a class="close-link">
+							 <i class="fa fa-times"></i>
+						 </a>
+					 </div>
+				 </div>
+				 <div class="ibox-content">
+					 <div id="morris-bar-chart"></div>
+				 </div>
+			 </div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>任务执行结果统计</h5>
+					<span class="label label-success pull-right">Monthly</span>
+                </div>
+                <div class="ibox-content">
+                    <div id="morris-donut-chart" ></div>
+                </div>
+            </div>
+        </div>
+		<div class="col-lg-6">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+					<span class="label label-info pull-right"><a href="{% url 'ansible_playbook_logs' %}" style="color: #f5f5f5;">Show More</a></span>
+					<h5>作业执行记录</h5>
+				</div>
+				{% for task in task_list %}
+					<div class="ibox-content inspinia-timeline">
+
+						<div class="timeline-item">
+							<div class="row">
+								<div class="col-xs-3 date">
+									<i class="fa fa-bookmark"></i>
+									{{ task.end_time }}
+									<br/>
+								</div>
+								<div class="col-xs-7 content no-top-border">
+									<p class="m-b-xs"><strong><a href="">{{ task.excutor }} 执行了作业</a></strong></p>
+
+									<p>[{{ task.end_time }}] {{ task.job_name }}</p>
+									<p><a href="{% url 'ansible_playbook_logs' %}?id={{ task.id }}">执行详情</a></p>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>

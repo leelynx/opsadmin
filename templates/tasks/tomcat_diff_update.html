@@ -1,0 +1,135 @@
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<link href="/static/fileinput/css/fileinput.css" rel="stylesheet">
+<style rel="stylesheet">
+.file-caption-main {
+    width: 100%;
+}
+</style>
+<script type="text/javascript" src="/static/fileinput/js/fileinput.min.js"></script>
+<h4 class="widget-head-color-box">程序增量更新</h4>									
+<div class="hr-line-dashed"></div>
+<div class="form-group">
+<label class="control-label col-sm-2 col-lg-2">程序更新方式</label>
+    <div class="col-sm-10">
+		 <input type="radio" id="add" name="mode_t_jar" value="add" onclick="getSelect(this.value)"><span style="margin:8px">新增或替换</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		 <input type="radio" id="del" name="mode_t_jar" value="del" onclick="getSelect(this.value)"><span style="margin:8px">版本删除</span>&nbsp;&nbsp;&nbsp;&nbsp;
+		 <input type="radio" id="iter" name="mode_t_jar" value="iter" onclick="getSelect(this.value)"><span style="margin:8px">版本迭代</span>
+    </div>
+</div>
+<div class="form-group">
+<label class="control-label col-sm-2 col-lg-2">目标更新路径</label>
+    <div class="col-sm-10 col-lg-10">
+        <input type="text" id="dst_path" name="dst_path" class="task_input" placeholder="Example:  'webapps/ROOT/WEB-INF/lib'" />
+    </div>
+</div>	
+<div id="src_del" class="form-group" style="display:none">
+<label class="control-label col-sm-2 col-lg-2">待删除文件名</label>
+    <div class="col-sm-10 col-lg-10">
+        <textarea id="del_file" name="del_file" class="task_input" rows="5" cols="5" ></textarea>
+    </div>
+</div>
+
+<div id="src" class="form-group" style="display:none">
+<label class="control-label col-sm-2 col-lg-2">旧版本文件名</label>
+    <div class="col-sm-10 col-lg-10">
+        <input type="text" id="old_file" name="old_file" class="task_input" />
+    </div>
+</div>
+<div id="dst" class="form-group" style="display:none">
+<label class="control-label col-sm-2 col-lg-2">新版本文件名</label>
+    <div class="col-sm-10 col-lg-10">
+        <input type="text" id="new_file" name="new_file" class="task_input" />
+    </div>
+</div>
+<div id="file_id" class="form-group" style="display:none">
+<label class="control-label col-sm-2 col-lg-2">程序文件上传</label>
+	<div class="col-lg-10 col-lg-10">
+	   <input id="uploadfile" type="file" multiple class="task_input">
+	</div>
+</div>
+<script type="text/javascript">
+
+
+ function getSelect(val){
+    var val1 = document.getElementById("del").value
+	var val2 = document.getElementById("iter").value
+	if (val === val1){
+	  $("#src_del").removeAttr("style"); 
+	  document.getElementById("dst").style.display="none";
+	  document.getElementById("src").style.display="none";
+	  document.getElementById("file_id").style.display="none";
+   }
+   else if (val === val2){
+      $("#src").removeAttr("style");
+	  $("#dst").removeAttr("style");
+	  $("#file_id").removeAttr("style");
+	  document.getElementById("src_del").style.display="none";
+   }
+   else{
+      $("#file_id").removeAttr("style");
+      document.getElementById("src").style.display="none";
+	  document.getElementById("dst").style.display="none";
+	  document.getElementById("src_del").style.display="none";
+  }
+ }
+</script>
+<script type="text/javascript">
+// using jQuery
+	function getCookie(name) {
+		var cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+			var cookies = document.cookie.split(';');
+			for (var i = 0; i < cookies.length; i++) {
+				var cookie = jQuery.trim(cookies[i]);
+				// Does this cookie string begin with the name we want?
+				if (cookie.substring(0, name.length + 1) === (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
+	var csrftoken = getCookie('csrftoken');
+	$.ajaxSetup({
+		headers: {"X-CSRFToken": csrftoken},
+		cache: false //关闭AJAX相应的缓存
+	});
+</script>
+<script type="text/javascript">
+	
+	$("#uploadfile").fileinput({
+		uploadUrl:"{% url 'systools_upload_files' %}",
+		uploadExtraData:  function() {
+			   var base_dir = "{{ upload_path }}";
+               var app_name = document.getElementById('app_name').value;
+			   var path = base_dir + "/" + app_name;
+               return {"path": path};
+            },
+		allowedFileExtensions: ['tar.gz', 'jar','zip','class','js','css', 'war'],
+		uploadAsync: true,
+		showUpload:true,
+		showRemove :true,
+		showPreview: false,
+		maxFileSize:0,
+		minFileCount: 0,
+		maxFileCount: 2,
+		enctype:'multipart/form-data',
+		validateInitialCount:true,
+		layoutTemplates :{
+            // actionDelete:'', //去除上传预览的缩略图中的删除图标
+            actionUpload:'',//去除上传预览缩略图中的上传图片；
+            actionZoom:''   //去除上传预览缩略图中的查看详情预览的缩略图标。
+        },
+
+		});
+    $("#uploadfile").on("fileuploaded", function (event, data, previewId, index) {
+	      swal("文件上传成功");
+      });
+
+    $('#uploadfile').on('fileerror', function(event, data, msg) {
+	     swal(msg);
+    })
+</script>

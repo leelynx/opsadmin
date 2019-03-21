@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+<link href="/static/css/task.css" rel="stylesheet">
+<link href="/static/wizard/css/ace.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+			<div class="widget-box">
+				<div class="widget-header widget-header-blue widget-header-flat"></div>
+
+				<div class="widget-body">
+					<div class="widget-main">
+						<div id="fuelux-wizard" class="row-fluid" data-target="#step-container">
+							<ul class="wizard-steps">
+								<li data-target="#step1" class="active">
+									<span class="step">1</span>
+									<span class="title">发布任务信息</span>
+								</li>
+
+								<li data-target="#step2" class="">
+									<span class="step">2</span>
+									<span class="title">选择发布类型</span>
+								</li>
+								<li data-target="#step3" class="">
+									<span class="step">3</span>
+									<span class="title">选择发布主机</span>
+								</li>
+							</ul>
+						</div>
+						<div class="hr-line-dashed"></div>
+						<div class="step-content row-fluid position-relative" id="step-container">
+							<form id="task_form" name="checkform" method="post" class="form-horizontal">
+								{% csrf_token %}
+								<div class="step-pane active" id="step1">
+									<div class="form-group">
+									    <label class="control-label col-sm-2 col-lg-2">发布应用名称</label>
+										<div class="col-sm-10 col-lg-10">
+										  <input type="text" id="app_name" value="{{ app_name }}" class="task_input" disabled />
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-sm-2 col-lg-2">应用发布版本</label>
+										<div class="col-sm-10">
+											<input id="app_ver" type="text" name="app_ver" class="task_input" />
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="control-label col-sm-2 col-lg-2">版本变更说明</label>
+										<div class="col-sm-10 col-lg-10">
+										<textarea class="task_input" rows="10" name="task_detail" id="task_detail"> </textarea>
+										</div>
+									</div>
+								</div>
+
+								<div class="step-pane" id="step2">
+									<div id="task_add"></div>
+									<div class="form-group">
+										<div class="op-task-detail-row">
+										<label class="control-label col-sm-2 col-lg-2">任务发布类型</label>
+											<div class="col-sm-10 col-lg-10">
+												<div class="row-value"><div class="op-task-node-list-wrap"></div>
+													<div class="add-op-task-node-asset-wrap" id="create_task">
+														<div class="create-icon"></div>
+														<div class="create-label">选择发布类型</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="step-pane" id="step3">
+									<div class="form-group">
+										<label for="users" class="col-sm-2 control-label">选择发布主机</label>
+										<div class="col-lg-4">
+											<select id="host_id" name="host" size="12" class="task_input" multiple>
+											{% for host in hosts %}
+												<option value="{{ host.private_ip }}">{{ host.hostname }}</option>
+											 {% endfor %}
+											</select>
+										</div>
+										<div class="col-xs-1">
+											<div class="btn-group" style="margin-top: 50px;">
+												<button type="button" class="btn btn-white" onclick="move('host_id', 'host_id_select')"><i class="fa fa-chevron-right"></i></button>
+												<button type="button" class="btn btn-white" onclick="move('host_id_select', 'host_id')"><i class="fa fa-chevron-left"></i> </button>
+											</div>
+										</div>
+										<div class="col-lg-4">
+											<div>
+												<select id="host_id_select" name="host_id_select" class="task_input" size="12"  multiple>
+												</select>
+											</div>
+										</div>
+									</div>
+									<div class="hr-line-dashed"></div>
+									<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">是否单独重启</label>
+										<div class="col-sm-10">
+											<input type="radio" name="switch" value="y"><span style="margin-left: 10px;">重启</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
+											<input type="radio" name="switch" value="n"><span style="margin-left: 10px;">不重启</span>
+										</div>
+									</div>
+									<div class="hr-line-dashed"></div>
+									<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">发布执行方式</label>
+										<div class="col-sm-6 col-lg-4">
+											<input type="checkbox"  id="exe_mode" name="exe_mode" checked />
+										</div>
+									</div>										
+								</div>
+							</form>
+						</div>
+
+						<div class="hr-line-dashed"></div>
+						<div class="row-fluid wizard-actions">
+							<button class="btn btn-prev" disabled="disabled"><i class="icon-arrow-left"></i>上一步</button>
+							<button class="btn btn-success btn-next" data-last="提交" id="run_task">下一步<i class="icon-arrow-right icon-on-right"></i></button>
+						</div>
+					</div><!-- /widget-main -->
+				</div><!-- /widget-body -->
+			</div>		
+		</div>
+	</div>
+</div>
+
+
+
+<!-- 模态框（Modal） -->
+<!-- <div class="modal fade" id="modal_group" tabindex="-1" role="dialog" aria-labelledby="ansible_group" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content" id="box">
+
+      </div>
+   </div>
+</div>-->
+<div class="modal fade" id="task_type_id" tabindex="-1" role="dialog" aria-labelledby="task_type_id">  
+    <div class="modal-dialog" role="document">  
+        <div class="modal-content">  
+            <div class="modal-header">   
+                <h4 class="modal-title" id="task_type_id">选择发布类型</h4>  
+            </div>  
+            <div class="modal-body">  
+				<div class="form-group" style="height:100px;">
+				<label class="control-label col-sm-2 col-lg-2" style="font-size: 13px;">更新类型: </label>
+                    <div class="col-sm-10">
+						<label class="radio"><input type="radio" id="full" name="arg" value="full" style="margin: 0 0 0;"><span style="	font-weight: 400;margin-left: 20px;">全量发布</span></label>
+						<label class="radio"><input type="radio" id="diff" name="arg" value="diff" style="margin: 0 0 0;"><span style="	font-weight: 400;margin-left: 20px;">增量更新</span></label>
+						<label class="radio"><input type="radio" id="config" name="arg" value="config" style="margin: 0 0 0;"><span style="	font-weight: 400;margin-left: 20px;">配置更新</span></label>
+                    </div>
+				</div> 
+            </div>  
+            <div class="modal-footer">  
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>  
+                <button type="submit" class="btn btn-primary" data-dismiss="modal" onclick="get_value()">确定</button>
+            </div>  
+        </div>  
+    </div>  
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="run_task_id" tabindex="-1" role="dialog" aria-labelledby="run_task_id" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="run_task_id">执行发布任务</h4>
+            </div>
+            <div class="modal-body">
+				<div class="form-group">
+					<label class="control-label col-sm-2 col-lg-2">任务Task__id:</label>
+					<div class="col-sm-10 col-lg-10">
+						<input type="button" id="task_id" name="tasks" class="task_result" value="" style="text-align: left;" disabled="disabled"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label col-sm-2 col-lg-2">任务运行状态:</label>
+					<div class="col-sm-10 col-lg-10">
+						<input type="button" id="status_id" name="task_status" class="task_result" value="" style="text-align: left;" disabled="disabled"/>
+					</div>
+				</div>
+				<div class="form-group" id="result">
+					<label class="control-label col-sm-2 col-lg-2">任务执行日志:</label>
+					<div class="col-sm-10 col-lg-10">
+					<textarea class="task_result" rows="20" id="task_result" disabled="disabled"> </textarea>
+					</div>
+				</div>
+			</div>
+            <div class="modal-footer" style="border-top: 1px #e5e5e5;">
+				<div class="form-group">
+				    <div class="col-sm-10 col-lg-8">
+						<input type="button" id="start_id" class="btn btn-xs btn-primary" value="执行任务" />
+						<input type="button" id="stop_id" class="btn btn-xs btn-danger" value="取消任务" onclick="get_task_id()" disabled />
+						<input type="button" id="save_id" class="btn btn-xs btn-success" data-dismiss="modal" value="保存任务" />
+						<button type="button" class="btn  btn-xs btn-default" data-dismiss="modal">关闭</button>
+					</div>
+				</div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+		{% if task_state %}
+			window.wxc.xcConfirm('存在未处理任务,禁止创建新任务', window.wxc.xcConfirm.typeEnum.error);
+			setTimeout(function(){
+				window.location.href=("{% url 'task_sheet_list' %}");
+			}, 1000);
+		{% endif %}
+	});
+</script>
+<script type="text/javascript">
+//set csrf
+ $.ajaxSetup({
+	headers: {"X-CSRFToken":'{{ csrf_token }}'},
+	cache: false //关闭AJAX相应的缓存
+ });
+ //bootstrap select
+ $(window).on('load', function () {      
+	$('.selectpicker').selectpicker({
+                'selectedText': 'cat'
+        });
+ });
+
+</script>
+
+<script type="text/javascript"> 
+	$('#create_task').on('click',function(){
+		$('#task_type_id').modal({
+			show: true,
+			backdrop: 'static',
+			keyboard: 'false',
+		});
+		$('#task_type_id').on('hidden.bs.modal',function(){
+			$(this).removeData("bs.modal");
+		});
+    });
+ function get_value(){
+	var arg = $('input:radio[name="arg"]:checked').val();
+	$("#task_add").load("{% url 'get_ansible_task_type' %}",{"app_name":"{{ app_name }}","arg":arg});
+
+
+ }
+</script>
+<!-- ace scripts -->
+
+<script src="/static/wizard/js/ace-elements.min.js"></script>
+<script src="/static/wizard/js/bootbox.min.js"></script>
+<script src="/static/wizard/js/fuelux.wizard.min.js"></script>
+<script type="text/javascript">
+	jQuery(function($) {
+		$('#fuelux-wizard').ace_wizard().on('finished', function(e) {
+			/*清空上一次执行的数据日志*/
+				$('#task_result').html("").show();
+				$("#status_id").val("");
+				$("#task_id").val("");
+			/*运行任务*/
+				$('#run_task_id').modal({
+					show: true,
+					backdrop: 'static',
+					keyboard: 'false',
+				});
+		}).on('stepclick', function(e){
+			//return false;//prevent clicking on steps
+		});	
+		$('#modal-wizard .modal-header').ace_wizard();
+	})
+
+</script>
+{% include './task_tomcat.html' %}
+<script type="text/javascript">     
+$('[name="exe_mode"]').bootstrapSwitch({
+		onText:"串行",
+		offText:"并行",
+		onColor:"primary",
+		offColor:"success",
+		size:"small"
+		/*onSwitchChange:function(event,state){
+			if(state==true){
+				$(this).val("1");
+			}else{
+				$(this).val("2");
+			}
+		}*/
+	})
+</script> 
+
+{%endblock %}

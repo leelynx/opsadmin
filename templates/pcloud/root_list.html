@@ -1,0 +1,113 @@
+{% load customtags %}
+<div class="modal-header">
+    <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button> -->
+    <h4 class="modal-title" id="banklist_root">选择发布程序</h4>
+</div>
+
+<div class="modal-body" style="padding-bottom: 0px;">
+    <table aria-describedby="editable_info" role="grid" class="table table-striped table-bordered table-hover  dataTable" id="editable1" style="width:-10px ! important;">
+        <thead>
+            <tr>
+                <th class="text-center" style="background-color:white">
+                    <input type="checkbox" id="check_all_root" onclick="root_all_check()">
+                </th>
+                <th class="text-center" id="th_no">id</th>
+				<th class="text-center">项目主机</th>
+                <th class="text-center">项目名称</th>
+				<th class="text-center">部署路径</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for root in app_list %}
+            <tr name="bank_info_root">
+                <td class="text-center"><input type="checkbox" name="checked" value="{{ root.id }}"></td>
+                <td class="text-center">{{ root.id }}</td>
+                <td class="text-center">{{ root.app_ip.all|ip_to_str }}</td>
+                <td class="text-center">{{ root.app_name }}</td>
+				<td class="text-center">{{ root.root_path }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" id="close-btn2">取消</button>
+    <button type="button" class="btn btn-primary" id="save-btn2">保存</button>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var table = $('#editable1').DataTable({
+        "aLengthMenu": [[10, 25, 50, -1], ["10", "25", "50", "all"]],
+        "iDisplayLength":10,
+        "aaSorting": [[2, "asc"]],
+        "aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+        "bAutoWidth": false,
+        "language": {
+            "url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+        },
+        columns: [
+            {data: "checkbox"},
+            {data: "id"},
+            {data: "app_ip"},
+            {data: "app_name"},
+			{data: "root_path"}
+        ]
+    });
+    //将ID列隐藏
+    table.column('1').visible(false);
+
+    $('#editable1 tbody').on( 'click', 'tr', function () {
+        //alert($(this).hasClass('selected'));
+        if($(this).hasClass('selected')){
+            $(this).removeClass('selected');
+            this.children[0].children[0].checked=0;
+        }else{
+            $(this).addClass('selected');
+            this.children[0].children[0].checked=1;
+        }
+    });
+
+    $('#close-btn2').on('click',function(){
+        $('#modal_root').modal('hide');
+    });
+    $('#save-btn2').on('click',function(){
+        var column2 = table.rows('.selected').data();
+		$("#bank_root_id").find("input[name='root_path']").remove();
+        $("#bank_root").find("button[name='bank']").remove();
+        for(var i=0;i<column2.length;i++){
+            column2[i].checkbox='<input name="checked" value="1" checked="" type="checkbox">';
+           // var value = column2[i].id;
+            var root_path = column2[i].root_path;
+			var app_name = column2[i].app_name
+            $("#bank_root_id").append("<input  type='hidden' id='root_path' name='root_path' value='"+root_path+"'>");
+            $("#bank_root").append("<button name='bank' title='"+app_name+"' type='button' class='btn btn-default btn-xs ss'>"+app_name+"</button> ");
+        }
+        $('#modal_root').modal('hide');
+    });
+
+}); //$(document).ready
+
+var bCheck = 1;
+function root_all_check(){
+    if(bCheck){
+        $("tr[name='bank_info_root']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',true);
+            oCheckbox.checked=1;
+        });
+        document.getElementById('check_all_root').checked=1;
+        bCheck = 0;
+    }else{
+        $("tr[name='bank_info_root']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',false);
+            oCheckbox.checked=0;
+        });
+        document.getElementById('check_all_root').checked=0;
+        bCheck = 1;
+    }
+}
+
+</script>

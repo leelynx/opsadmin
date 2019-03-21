@@ -1,0 +1,31 @@
+.ijobs-input {
+    width: 800px;
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+}
+.w800 {
+    width: 800px !important;
+}
+
+.ace-code-contain {
+    width: 100%;
+    background: #fff;
+}
+#codeTab {
+    border: 1px solid #ccc;
+    padding-bottom: 7px;
+    padding-left: 10px;
+    border-bottom: 1px solid #ccc;
+    background: #fff;
+}
+.code_1 {
+    position: relative;
+    display: block;
+	height: 335px;
+}
+
+#codediv, .codediv {
+    position: relative;
+    margin-bottom: 10px;
+}

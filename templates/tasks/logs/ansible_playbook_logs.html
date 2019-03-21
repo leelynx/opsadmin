@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<script>
+	$(function (){
+		$("[data-toggle='popover']").popover({
+			trigger: 'hover',
+		container: 'body'
+		});
+	});
+</script>
+{% include 'nav_cat_bar.html' %}
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>作业执行日志</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+				<div class="ibox-content">
+                    <!-- Advanced Tables -->
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover" id="playbook_logs_id">
+                                <thead>
+                                    <tr>
+									<th class="text-center" style="white-space: nowrap;">作业名称</th>
+									<th class="text-center" style="white-space: nowrap;">作业ID号</th>
+									<th class="text-center" style="white-space: nowrap;">发布说明</th>
+									<th class="text-center" style="white-space: nowrap;">开始时间</th>
+									<th class="text-center" style="white-space: nowrap;">结束时间</th>
+									<th class="text-center" style="white-space: nowrap;">执行状态</th>
+									<th class="text-center" style="white-space: nowrap;">执行人</th>
+									<th class="text-center" style="white-space: nowrap;">所有操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+									{% for job in job_logs %}
+										<tr class="odd gradeX">
+											<td>{{ job.job_name }}</td>
+											<td class="text-center" >{{ job.job_uuid }}</td>
+											<td>
+												<button id="sub" type="button" class="btn btn-default" title="发布版本说明"  
+														data-container="body" data-toggle="popover" data-placement="right" 
+														data-content="{{ job.version_description }}" data-html="true">
+													<i class="fa fa-play-circle-o"></i>
+												</button> 
+											</td>
+											<td class="text-center">{{ job.start_time }}</td>
+											<td class="text-center">{{ job.end_time }}</td>
+											{% ifequal job.state "SUCCESS" %}
+												<td class="text-center"><span class="label label-success">执行成功</span></td>
+											{% endifequal %}
+											{% ifequal job.state "FAILURE" %}
+												<td class="text-center"><span class="label label-danger">执行失败</span></td>
+											{% endifequal %}
+											{% ifequal job.state "REVOKED" %}
+												<td class="text-center"><span class="label label-warning">任务取消</span></td>
+											{% endifequal %}
+											<td class="text-center">{{ job.excutor }}</td>
+											<td class="text-center">
+												<a value="{% url 'ansible_playbook_logs_detail' %}?id={{ job.id}}" class="btn btn-xs btn-info detail">执行详情</a>
+											</td>
+										</tr>
+									{% endfor %}								
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                    </div>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/dataTables/jquery.dataTables.js"></script>
+<script src="/static/dataTables/dataTables.bootstrap.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#playbook_logs_id').dataTable({
+		 language: {
+		   "sProcessing": "处理中...",
+		   "sLengthMenu": "显示 _MENU_ 项结果",
+		   "sZeroRecords": "没有匹配结果",
+		   "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+		   "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+		   "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+		   "sInfoPostFix": "",
+		   "sSearch": "搜索:",
+		   "sUrl": "",
+		   "sEmptyTable": "表中数据为空",
+		   "sLoadingRecords": "载入中...",
+		   "sInfoThousands": ",",
+		   "oPaginate": {
+			   "sFirst": "首页",
+			   "sPrevious": "上页",
+			   "sNext": "下页",
+			   "sLast": "末页"
+		   },
+		   "oAria": {
+			   "sSortAscending": ": 以升序排列此列",
+			   "sSortDescending": ": 以降序排列此列"
+		   }
+		},
+		columnDefs : [ {
+             targets : 0,
+             "orderable" : false
+         } ],
+		 "order" : [ [ 3, 'desc' ] ],
+        "paginationType": "full_numbers",      //详细分页组，可以支持直接跳转到某页 
+
+		});
+    });
+</script>
+<script>
+	
+$(".detail").on('click', function(){
+    var url= $(this).attr("value");
+    parent.layer.open({
+            type: 2,
+            title: '执行详细日志',
+            maxmin: true,
+            shift: 'top',
+            border: [2, 0.3, '#1AB394'],
+            shade: [0.5, '#000000'],
+            area: ['1000px', $(window).height() +'px'],
+            shadeClose: true,
+            content: url,
+            cancel: function(){
+                location.replace(location.href);
+            }
+    });
+ });
+</script>
+
+{% endblock %}

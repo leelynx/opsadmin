@@ -1,0 +1,150 @@
+<script type="text/javascript">
+   $(document).ready(function() {
+		var read_flag = false;
+		$('#start_id').click(function(){
+			var arg = $('input:radio[name="arg"]:checked').val();
+			var exe_mode = $('#exe_mode').bootstrapSwitch('state');
+			var form_data = $("form").serialize() + "&arg=" + arg + "&exe_mode=" + exe_mode;;
+			if(arg == "" || $("#app_ver").val() == ""){
+				//swal("请填写完整表单");
+				$('#task_result').html("请填写完整表单").show();
+			
+			}else{
+				document.getElementById('start_id').disabled=true;
+				document.getElementById('stop_id').disabled=false;
+				document.getElementById('save_id').disabled=true;
+				var read_flag = true;
+				var state = 'PENDING';
+				$("#status_id").val(state);	
+				$.ajax({
+					type:"post",
+					url:"{% url 'create_task_play' app_id %}",
+					data: form_data,
+					async:true,
+					success: function(result){
+						if(result['code'] == 500){
+						   document.getElementById('start_id').disabled=false;
+						   $('#task_result').html(result['error']).show();
+						   //window.wxc.xcConfirm(result['error'], window.wxc.xcConfirm.typeEnum.error);
+						}else{
+							$("#task_id").val(result['task_id']);
+							read_log({'seek': 0 , 'task_id': result['task_id'], 'log_file': result['log_file'], 'job_name':result['job_name'], 'app_type':result['app_type'], 'pid':result['pid'], 'task_detail':result['task_detail'], 'inventory':result['inventory'], 'release_tag':result['release_tag']});
+							$('#task_result').html("start read ...").show();
+						}
+					},
+					error: function(err){
+						document.getElementById('start_id').disabled=false;
+						$('#task_result').html(err).show();
+						//window.wxc.xcConfirm('运行失败', window.wxc.xcConfirm.typeEnum.error);
+					}
+				});
+			}
+		});	
+	    //保存任务, 待下次执行
+		$('#save_id').click(function(){
+		    document.getElementById('start_id').disabled=true;
+			var action = "save";
+			var arg = $('input:radio[name="arg"]:checked').val();
+			var exe_mode = $('#exe_mode').bootstrapSwitch('state');
+			var form_data = $("form").serialize() + "&arg=" + arg + "&exe_mode=" + exe_mode + "&action=" + action;
+			if($("#ab_group").val() == "" || arg == "" || $("#app_ver").val() == ""){				
+				swal("请填写完整表单");
+			
+			}else{
+				$.ajax({
+					type:"post",
+					url:"{% url 'create_task_play' app_id %}",
+					data: form_data,
+					async:true,
+					success: function(result){
+						if(result['code'] == 500){
+						   swal(result['error']);
+						}else{
+							swal("任务保存成功");	
+							setTimeout(function(){
+								window.location.href=("{% url 'task_sheet_list' %}");
+							}, 2000);
+						}
+					},
+					error: function(err){
+						swal(err);
+					}
+				});
+			}
+		});	
+	});
+
+function read_log(data){
+    console.log(data);
+   	$.ajax({
+		type:"post",
+		url:"{% url 'read_ansible_execute_log' %}",
+		data:data,
+		async:true,
+		success: function(result){
+			var msg=JSON.parse(result);
+		    if(msg.error == undefined){
+				$('#task_result').html(msg.logs).show();
+				if(msg.state == 'REVOKED'){
+					$("#status_id").val(msg.state);
+					$('#task_result').html('end read').show();
+					var read_flag = false;
+					return;
+				};
+				state = msg.state;
+				if(state == "SUCCESS"){
+					$("#status_id").val("FINISHED");
+				}else{
+					$("#status_id").val(state);
+				}
+				read_flag = msg.read_flag;
+				if(read_flag == false){
+					document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+					document.getElementById('start_id').disabled=false;
+				}else{
+					setTimeout(function() { read_log(data)}, 1000);  // wait every 1 second to read log
+					if(document.getElementById("task_result").scrollTop + 1000>=document.getElementById("task_result").scrollHeight || document.getElementById("task_result").scrollTop == 0){
+						setTimeout(function(){
+							document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+						},100);
+					}
+				}
+			}else{
+				//swal(msg.error);
+				$('#task_result').html(msg.error).show();
+			}
+		},
+		error: function(err){
+            //swal(err);
+			$('#task_result').html(err).show();
+        }
+	});
+
+
+
+}
+</script>
+<script type="text/javascript">
+	function get_task_id(){
+		var task_id = document.getElementById("task_id").value;
+		data = {"task_id": task_id}
+		$.ajax({
+			type:"post",
+			url:"{% url 'revoke_ansible_task' %}",
+			data:data,
+			async:true,
+			success: function(result){
+				if(result['code'] == '200'){
+				    $('#task_result').html(result['message']).show();
+					  //swal(result['message'], result['message'], "success");
+				}else{
+					$('#task_result').html(result['message']).show();
+					//swal(result['message'], result['message'], "error");
+				}
+			},
+			error: function(err){
+				$('#task_result').html(err).show();
+			}
+		});
+	}
+</script>

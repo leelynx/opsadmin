@@ -1,0 +1,106 @@
+
+<div class="modal-header">
+    <!--<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>-->
+    <h4 class="modal-title" id="service_list">选择发布程序</h4>
+</div>
+
+<div class="modal-body" style="padding-bottom: 0px;">
+    <table aria-describedby="editable_info" role="grid" class="table table-striped table-bordered table-hover  dataTable" id="editable2" style="width:-10px ! important;">
+        <thead>
+            <tr>
+                <th class="text-center" style="background-color:white">
+                    <input type="checkbox" id="check_all" onclick="checkAll()">
+                </th>
+                <th class="text-center" id="th_no">ID</th>
+                <th class="text-center">项目名称</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for service in service_list %}
+            <tr name="service_info">
+                <td class="text-center"><input type="checkbox" name="checked" value="{{ forloop.counter}}"></td>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td class="text-center">{{ service.app_name }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" id="close-butn">取消</button>
+    <button type="button" class="btn btn-primary" id="save-butn">保存</button>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var table = $('#editable2').DataTable({
+        "aLengthMenu": [[10, 25, 50, -1], ["10", "25", "50", "all"]],
+        "iDisplayLength":10,
+        "aaSorting": [[2, "asc"]],
+        "aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+        "bAutoWidth": false,
+        "language": {
+            "url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+        },
+        columns: [
+            {data: "checkbox"},
+            {data: "id"},
+            {data: "app_name"},
+        ]
+    });
+    //将ID列隐藏
+    //table.column('1').visible(false);
+
+    $('#editable2 tbody').on( 'click', 'tr', function () {
+        //alert($(this).hasClass('selected'));
+        if($(this).hasClass('selected')){
+            $(this).removeClass('selected');
+            this.children[0].children[0].checked=0;
+        }else{
+            $(this).addClass('selected');
+            this.children[0].children[0].checked=1;
+        }
+    });
+
+    $('#close-butn').on('click',function(){
+        $('#modal_service').modal('hide');
+    });
+    $('#save-butn').on('click',function(){
+        var column2 = table.rows('.selected').data();
+		$("#service_id").find("input[name='app_name']").remove();
+        $("#service").find("button[name='service']").remove();
+        for(var i=0;i<column2.length;i++){
+            column2[i].checkbox='<input name="checked" value="1" checked="" type="checkbox">';
+           // var value = column2[i].id;
+			var app_name = column2[i].app_name
+            $("#service_id").append("<input  type='hidden' id='app_name' name='app_name' value='"+app_name+"'>");
+            $("#service").append("<button name='service' title='"+app_name+"' type='button' class='btn btn-default btn-xs ss'>"+app_name+"</button> ");
+        }
+        $('#modal_service').modal('hide');
+    });
+
+}); //$(document).ready
+
+var bCheck = 1;
+function checkAll(){
+    if(bCheck){
+        $("tr[name='service_info']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',true);
+            oCheckbox.checked=1;
+        });
+        document.getElementById('check_all').checked=1;
+        bCheck = 0;
+    }else{
+        $("tr[name='service_info']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',false);
+            oCheckbox.checked=0;
+        });
+        document.getElementById('check_all').checked=0;
+        bCheck = 1;
+    }
+}
+
+</script>

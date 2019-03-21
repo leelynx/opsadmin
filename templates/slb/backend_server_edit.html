@@ -1,0 +1,54 @@
+{% load bootstrap %}
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+	<h4 class="modal-title" id="bk_server">修改后端服务器</h4>
+</div>
+
+<div class="wrapper wrapper-content animated fadeInRight">
+    <form id="backend_server_id" method="post" class="form-horizontal">
+    	<div class="modal-body">
+    		{% csrf_token %}
+    		{{ backend_server_form.server_name|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.server_area|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.slb_name|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.server_ip|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.server_port|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.weight|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.max_fails|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>
+    		{{ backend_server_form.fail_timeout|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>	
+    		{{ backend_server_form.update_key|bootstrap_horizontal }}
+    		<div class="hr-line-dashed"></div>										
+    		{{ backend_server_form.comment|bootstrap_horizontal }}
+    	</div>
+    	<div class="modal-footer">
+    	  <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+    	  <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="bkserver_edit()">修改</button>
+    	</div>
+    </form>
+
+</div>
+
+<script src="/static/js/sweet-alert.js"></script>
+<link href="/static/css/sweet-alert.css" rel="stylesheet" >
+<script type="text/javascript">
+	function bkserver_edit(){
+		$.ajax({
+			type:"post",
+			url:"{% url 'backend_server_edit' %}",
+			data:$("form").serialize(),
+			async:true,
+			success: function(msg){
+				swal(msg);
+			}
+		});
+	}
+
+</script>

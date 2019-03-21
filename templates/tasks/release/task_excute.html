@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block self_head_css_js %}
+<link href="/static/css/task.css" rel="stylesheet">
+<link href="/static/wizard/css/ace.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/static/css/xcConfirm.css"/>
+<script type="text/javascript"  src="/static/js/xcConfirm.js" charset="utf-8"></script>
+
+{% endblock %}
+{% block content %}
+{% include 'nav_cat_bar.html' %}
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-sm-11">
+			<div class="ibox float-e-margins">
+				<div class="ibox-title">
+                    <h5>执行发布任务</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+				<div class="ibox-content">
+					<div class="step-content row-fluid position-relative" id="step-container">
+						<form id="task_form" name="checkform" method="post" class="form-horizontal">
+							{% csrf_token %}
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">任务Task__id:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="task_id" name="tasks" class="task_result" value="" style="text-align: left;" disabled="disabled"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-2 col-lg-2">任务运行状态:</label>
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="status_id" name="task_status" class="task_result" value="" style="text-align: left;" disabled="disabled"/>
+									</div>
+								</div>
+								<div class="form-group" id="result">
+									<label class="control-label col-sm-2 col-lg-2">任务执行日志:</label>
+									<div class="col-sm-10 col-lg-10">
+									<textarea class="task_result" rows="22" id="task_result" disabled="disabled"> </textarea>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<div class="col-sm-10 col-lg-10">
+										<input type="button" id="start_id" class="btn btn-xs btn-primary col-md-offset-6" value="执行任务" />
+										<input type="button" id="stop_id" class="btn btn-xs btn-danger col-md-offset-2" value="取消任务" onclick="get_task_id()" disabled />
+									</div>
+								</div>
+						</form>
+					</div>
+				</div>
+			</div>	
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+//set csrf
+ $.ajaxSetup({
+	headers: {"X-CSRFToken":'{{ csrf_token }}'},
+	cache: false //关闭AJAX相应的缓存
+ });
+</script>
+<script type="text/javascript">
+   $(document).ready(function() {
+		var read_flag = false;
+		//直接执行任务
+		$('#start_id').click(function(){
+			document.getElementById('start_id').disabled=true;
+			document.getElementById('stop_id').disabled=false;
+			var read_flag = true;
+			var state = 'PENDING';
+			$("#status_id").val(state);	
+			$.ajax({
+				type:"get",
+				url:"{% url 'ansible_task_manager' pid=pid action='excute' %}",
+				success: function(result){
+					if(result['code'] == 500){
+					   document.getElementById('start_id').disabled=false;
+					   window.wxc.xcConfirm(result['error'], window.wxc.xcConfirm.typeEnum.error);
+					}else{
+						$("#task_id").val(result['task_id']);
+						read_log({'seek': 0 , 'task_id': result['task_id'], 'log_file': result['log_file'], 'job_name':result['job_name'], 'app_type':result['app_type'], 'pid':result['pid'], 'task_detail':result['task_detail'], 'inventory':result['inventory'], 'release_tag':result['release_tag']});
+						$('#task_result').html("start read ...").show();
+					}
+				},
+				error: function(err){
+					document.getElementById('start_id').disabled=false;
+					window.wxc.xcConfirm('运行失败', window.wxc.xcConfirm.typeEnum.error);
+				}
+			});
+		});			
+	});
+
+function read_log(data){
+    //轮询任务执行日志
+   	$.ajax({
+		type:"post",
+		url:"{% url 'read_ansible_execute_log' %}",
+		data:data,
+		async:true,
+		success: function(result){
+			var msg=JSON.parse(result);
+		    if(msg.error == undefined){
+				$('#task_result').html(msg.logs).show();
+				if(msg.state == 'REVOKED'){
+					$("#status_id").val(msg.state);
+					$('#task_result').html('end read').show();
+					var read_flag = false;
+					return;
+				};
+				state = msg.state;
+				if(state == "SUCCESS"){
+					$("#status_id").val("FINISHED");
+				}else{
+					$("#status_id").val(state);
+				}
+				read_flag = msg.read_flag;
+				if(read_flag == false){
+					swal({
+					  title: "任务已完成",
+					  text: "5秒后,自动关闭 ...",
+					  timer: 5000
+					});;
+					document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+					document.getElementById('start_id').disabled=false;
+				}else{
+					setTimeout(function() { read_log(data)}, 1000);  // wait every 1 second to read log
+					if(document.getElementById("task_result").scrollTop + 1000>=document.getElementById("task_result").scrollHeight || document.getElementById("task_result").scrollTop == 0){
+						setTimeout(function(){
+							document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+						},100);
+					}
+				}
+			}else{
+				swal(msg.error);
+			}
+		},
+		error: function(err){
+            swal(err);
+        }
+	});
+
+
+
+}
+</script>
+<script type="text/javascript">
+	function get_task_id(){
+		swal({
+		  title: "确定取消该任务?",
+		  text: "取消任务后将停止执行,请谨慎操作!",
+		  type: "warning",
+		  showCancelButton: true,
+		  confirmButtonColor: "#ed5565",
+		  confirmButtonText: "是的,取消它!",
+		  cancelButtonText: "我再想想吧...",
+		  closeOnConfirm: false,
+		  closeOnCancel: false
+		},
+		function(isConfirm){
+		  if (isConfirm) {
+			var task_id = document.getElementById("task_id").value;
+			data = {"task_id": task_id}
+			$.ajax({
+				type:"post",
+				url:"{% url 'revoke_ansible_task' %}",
+				data:data,
+				async:true,
+				success: function(result){
+					if(result['code'] == '200'){
+						  swal(result['message'], result['message'], "success");
+					}else{
+						  swal(result['message'], result['message'], "error");
+					}
+				},
+				error: function(err){
+					swal(err);
+				}
+			});
+		 
+		  } else {
+			swal("取消操作", "您已取消停止任务的操作 :)", "error");
+		  }
+		});
+
+
+	}
+</script>
+{%endblock %}

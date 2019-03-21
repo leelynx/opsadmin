@@ -1,0 +1,118 @@
+<script type="text/javascript">
+   $(document).ready(function() {
+		var read_flag = false;
+		$('#start_id').click(function(){
+			document.getElementById('start_id').disabled=true;
+			document.getElementById('stop_id').disabled=false;
+			var read_flag = true;
+			var state = 'PENDING';
+			data = $("form").serialize();
+			$("#status_id").val(state);
+			$.ajax({
+				type:"post",
+				url:"{% url 'tomcat_rollback_task' task_record.id %}",
+				data:data,
+				async:true,
+				success: function(result){
+					if(result['code'] == '500'){
+					   window.wxc.xcConfirm(result['error'], window.wxc.xcConfirm.typeEnum.error);
+					}else{
+						$("#task_id").val(result['task_id']);
+						read_log({'seek': 0 , 'task_id': result['task_id'], 'log_file': result['log_file'], 'job_name':result['job_name'], 'app_type':result['app_type'], 'inventory':result['inventory']});
+						$('#task_result').html("start read ...").show();
+					}
+				},
+				error: function(err){
+					window.wxc.xcConfirm('运行失败', window.wxc.xcConfirm.typeEnum.error);
+				}
+			});
+		});	
+	});
+
+function read_log(data){
+	data.action = "rollback"
+   	$.ajax({
+		type:"post",
+		url:"{% url 'read_ansible_execute_log' %}",
+		data:data,
+		async:true,
+		success: function(result){
+		    var msg=JSON.parse(result);
+			$('#task_result').html(msg.logs).show();
+			if(msg.state == 'REVOKED'){
+			    $("#status_id").val(msg.state);
+				$('#task_result').html('end read').show();
+				var read_flag = false;
+				return;
+			};
+			state = msg.state;
+			if(state == "SUCCESS"){
+				$("#status_id").val("FINISHED");
+			}else{
+				$("#status_id").val(state);
+			}
+			read_flag = msg.read_flag;
+			if(read_flag == false){
+				swal({
+				  title: "任务已完成",
+				  text: "5秒后,自动关闭 ...",
+				  timer: 5000
+				});;
+				document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+                //$('#task_result').html("end read").show();
+			}else{
+				setTimeout(function() { read_log(data)}, 5000);  // wait every 5 second to read log
+				if(document.getElementById("task_result").scrollTop + 1000>=document.getElementById("task_result").scrollHeight || document.getElementById("task_result").scrollTop == 0){
+					setTimeout(function(){
+						document.getElementById("task_result").scrollTop=document.getElementById("task_result").scrollHeight;
+					},100);
+				}
+			}
+		},
+		error: function(err){
+            swal(err);
+        }
+	});
+
+
+
+}
+
+function get_task_id(){
+	swal({
+	  title: "确定取消该任务?",
+	  text: "取消任务后将停止执行,请谨慎操作!",
+	  type: "warning",
+	  showCancelButton: true,
+	  confirmButtonColor: "#ed5565",
+	  confirmButtonText: "是的,取消它!",
+	  cancelButtonText: "我再想想吧...",
+	  closeOnConfirm: false,
+	  closeOnCancel: false
+	},
+	function(isConfirm){
+	  if (isConfirm) {
+		var task_id = document.getElementById("task_id").value;
+		data = {"task_id": task_id}
+		$.ajax({
+			type:"post",
+			url:"{% url 'revoke_ansible_task' %}",
+			data:data,
+			async:true,
+			success: function(result){
+			   var cancle=JSON.parse(result);
+			   swal(cancle.message, cancle.message, "success");
+			},
+			error: function(err){
+				swal(err);
+			}
+		});
+	 
+	  } else {
+		swal("取消操作", "您已取消停止任务的操作 :)", "error");
+	  }
+	});
+
+
+}
+</script>

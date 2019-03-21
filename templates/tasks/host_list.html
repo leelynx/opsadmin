@@ -1,0 +1,139 @@
+
+<div class="modal-header">
+    <h4 class="modal-title" id="host">选择执行主机</h4>
+</div>
+
+<div class="modal-body" style="padding-bottom: 0px;">
+    <table aria-describedby="editable_info" role="grid" class="table table-striped table-bordered table-hover  dataTable" id="editable" style="width:-10px ! important;">
+        <thead>
+            <tr>
+                <th class="text-center" style="background-color:white">
+                    <input type="checkbox" id="check_all" onclick="checkAll()">
+                </th>
+                <th class="text-center">主机IP</th>
+                <th class="text-center">主机名</th>
+				<th class="text-center">可用区</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for host in host_list %}
+            <tr name="host_info">
+			    <td class="text-center"><input type="checkbox" name="checked" value="{{ host.server_id }}"></td>
+                <td class="text-center">{{ host.private_ip }}</td>
+                <td class="text-center">{{ host.hostname }}</td>
+				<td class="text-center">{{ host.resource_area }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" id="close-btn">取消</button>
+    <button type="button" class="btn btn-primary" id="save-btn">保存</button>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var table = $('#editable').DataTable({
+        "aLengthMenu": [[10, 25, 50, -1], ["10", "25", "50", "all"]],
+        "iDisplayLength":10,
+        "aaSorting": [[2, "asc"]],
+        "aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+        "bAutoWidth": false,
+        "language": {
+            "url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+        },
+        columns: [
+            {data: "checkbox"},
+            {data: "private_ip"},
+            {data: "hostname"},
+            {data: "resource_area"},
+        ]
+    });
+    //将ID列隐藏
+   // table.column('1').visible(false);
+
+    $('#editable tbody').on( 'click', 'tr', function () {
+        //alert($(this).hasClass('selected'));
+        if($(this).hasClass('selected')){
+            $(this).removeClass('selected');
+            this.children[0].children[0].checked=0;
+        }else{
+            $(this).addClass('selected');
+            this.children[0].children[0].checked=1;
+        }
+    });
+
+    $('#close-btn').on('click',function(){
+        $('#modal_host').modal('hide');
+    });
+    $('#save-btn').on('click',function(){
+		var column = table.rows('.selected').data();
+		create_table(column);
+        $('#modal_host').modal('hide');
+    });
+
+}); //$(document).ready
+
+var bCheck = 1;
+function checkAll(){
+    if(bCheck){
+        $("tr[name='host_info']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',true);
+            oCheckbox.checked=1;
+        });
+        document.getElementById('check_all').checked=1;
+        bCheck = 0;
+    }else{
+        $("tr[name='host_info']").each(function(){
+            oCheckbox = this.children[0].children[0];
+            $(this).toggleClass('selected',false);
+            oCheckbox.checked=0;
+        });
+        document.getElementById('check_all').checked=0;
+        bCheck = 1;
+    }
+}
+
+</script>
+<script type="text/javascript">
+	function create_table(cols){
+	    //展示dataTable
+		$("#show_id").show(); 
+		//添加数据
+		var tab=$("#host_table");
+	    if(tab.size()>0){ 
+		    //清除原始数据
+		    $("#host_table").dataTable().fnDestroy();
+            tab.find("tr:not(:first)").remove();
+			//生成table数据
+			for(var i=0;i<cols.length;i++){
+				var td_str = 
+					'<tr class="gradeX">' +
+						'<td>'+cols[i].private_ip+'</td>'+
+						'<td>'+cols[i].hostname+'</td>'+
+						'<td><button class="btn btn-xs btn-danger" onclick="deleteRow(this)">删除</button></td>'+
+					'</tr>';
+					$('#host_table').append(td_str);
+			}
+			//初始化DataTable
+			$('#host_table').DataTable({
+				"aLengthMenu": [[4, 6, 8, 10, 12, 14, 16, 18, 20, -1], ["4", "6", "8", "10", "12", "14", "16", "18", "20", "all"]],
+				"iDisplayLength":4,
+				"aaSorting": [[2, "asc"]],
+				"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0 ] }],
+				"bAutoWidth": false,
+				"language": {
+					"url": "/static/js/plugins/dataTables/i18n/zh-hans.json"
+				},
+				columns: [
+					{data: "主机IP"},
+					{data: "主机名"},
+					{data: "操作"}
+				]
+			});
+        }
+	}	
+</script>
